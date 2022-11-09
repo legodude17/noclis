@@ -1,0 +1,38 @@
+{
+  "extends": [
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:n/recommended",
+    "plugin:unicorn/recommended",
+    "plugin:import/typescript",
+    "plugin:import/recommended",
+    "eslint:recommended",
+    "prettier"
+  ],
+  "env": {
+    "node": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "parserOptions": {
+    "tsConfigRootDir": ".",
+    "project": ["./tsconfig.json"]
+  },
+  "rules": {
+    "unicorn/filename-case": "off",
+    "no-dupe-class-members": "off",
+    "unicorn/prevent-abbreviations": "off",
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "n/no-missing-import": "off",
+    "no-unused-vars": "off",
+    "unicorn/import-style": "off"
+  },
+  "settings": {
+    "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true,
+        "project": "."
+      }
+    }
+  }
+}

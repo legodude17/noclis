@@ -1,9 +1,73 @@
 {
   "name": "noclis",
   "description": "NoCLIS: Node CLI System. A pluggable framework, runner, and library for CLIs that are easy and fun to make and use",
-  "version": "0.0.0",
+  "version": "0.1.0-0",
   "homepage": "https://github.com/legodude17/noclis",
   "author": "JDB (https://github.com/legodude17)",
   "repository": "legodude17/noclis",
-  "license": "MIT"
+  "license": "MIT",
+  "type": "module",
+  "exports": "./dist/index.js",
+  "types": "./types/noclis.d.ts",
+  "scripts": {
+    "lint": "eslint src/**/*.ts",
+    "build": "tsc",
+    "start": "tsc --watch"
+  },
+  "devDependencies": {
+    "@tsconfig/node18-strictest-esm": "^1.0.1",
+    "@types/is-glob": "^4.0.2",
+    "@types/node": "^18.8.5",
+    "@types/proc-log": "^3.0.0",
+    "@types/proggy": "^2.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.40.0",
+    "@typescript-eslint/parser": "^5.40.0",
+    "eslint": "^8.26.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-import-resolver-typescript": "^3.5.1",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-n": "^15.3.0",
+    "eslint-plugin-unicorn": "^44.0.2",
+    "prettier": "^2.7.1",
+    "typescript": "^4.8.4"
+  },
+  "prettier": {
+    "trailingComma": "none",
+    "arrowParens": "avoid"
+  },
+  "dependencies": {
+    "@npmcli/ci-detect": "^3.0.1",
+    "@types/fs-minipass": "^2.1.0",
+    "@types/ini": "^1.3.31",
+    "@types/js-yaml": "^4.0.5",
+    "chalk": "^5.1.2",
+    "cli-spinners": "^2.7.0",
+    "cliui": "^8.0.1",
+    "enquirer": "^2.3.6",
+    "fastest-levenshtein": "^1.0.16",
+    "figures": "^5.0.0",
+    "fs-minipass": "^2.1.0",
+    "globby": "^13.1.2",
+    "import-fresh": "^3.3.0",
+    "ini": "^3.0.1",
+    "is-glob": "^4.0.3",
+    "js-yaml": "^4.1.0",
+    "log-update": "^5.0.1",
+    "minipass": "^3.3.5",
+    "path-exists": "^5.0.0",
+    "proc-log": "^3.0.0",
+    "proggy": "^2.0.0",
+    "read-pkg-up": "^9.1.0",
+    "string-width": "^5.1.2",
+    "strip-ansi": "^7.0.1",
+    "supports-color": "^9.2.3",
+    "type-fest": "^3.1.0",
+    "wrap-ansi": "^8.0.1"
+  },
+  "engines": {
+    "node": "~18.4.0 || ~19.0.0"
+  },
+  "noclis": {
+    "logLevel": "silly"
+  }
 }
