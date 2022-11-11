@@ -31,12 +31,10 @@ export interface Opt extends Part {
   prompt?: Except<PromptOption, "name"> | undefined;
 }
 
-/* @internal */
 export interface Argument extends Opt {
   order?: number;
 }
 
-/* @internal */
 export interface Option extends Opt {
   alias: string[];
   config: boolean;
@@ -44,7 +42,6 @@ export interface Option extends Opt {
   help: boolean;
 }
 
-/* @internal */
 export interface Command extends Part {
   children: Command[];
   options: Option[];

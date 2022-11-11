@@ -19,6 +19,11 @@ export interface AppOptions {
   ci: boolean;
 }
 
+/**
+ * The base CLI App class, handles logging and config.
+ *
+ * @public
+ */
 export default class App {
   #cliConfig: CLIConfig;
   #options?: AppOptions;
@@ -27,12 +32,25 @@ export default class App {
   #logFile?: LogFile;
   log: Logger;
 
+  /**
+   * Create an APP
+   *
+   * @internal
+   */
   constructor(config: CLIConfig) {
     this.#name = config.name;
     this.#cliConfig = config;
     this.log = createLogger(this.#name);
   }
 
+  /**
+   * Load config from files and CLI
+   *
+   * @param options - Options parsed from CLI.
+   * @param spec - All possible options, used for loading config
+   *
+   * @internal
+   */
   async config<O extends Record<string, unknown> & AppOptions>(
     options: O,
     spec: Option[]
@@ -54,20 +72,45 @@ export default class App {
     return result;
   }
 
+  /**
+   * Begin intercepting logging and begin displaying
+   *
+   * @internal
+   */
   start() {
     this.#display!.start();
     this.#logFile!.start().catch(this.#errorHandler.bind(this));
   }
 
+  /**
+   * Stop intercepting logging and finish the display.
+   *
+   * @internal
+   */
   stop() {
     this.#logFile!.stop();
     this.#display!.stop();
   }
 
+  /**
+   * Create a new top-level {@link Task}
+   *
+   * @remarks
+   * If you want a sub-task, use {@link Task.task}
+   *
+   * @public
+   */
   task(name: string, key?: string) {
     return new Task(name, key ?? name);
   }
 
+  /**
+   * Name a function.
+   * Function names are used for task names if no other option is available,
+   * so this is provided for convenience.
+   *
+   * @public
+   */
   // eslint-disable-next-line @typescript-eslint/ban-types
   name<T extends Function>(fn: T, name: string): T & { displayName: string } {
     const newFn = fn as T & { displayName: string };
@@ -80,6 +123,11 @@ export default class App {
     console.error(e);
   }
 
+  /**
+   * Run a prompt. Alias for {@link enquirer.prompt}.
+   *
+   * @public
+   */
   prompt(
     ...args: Parameters<typeof enquirer.prompt>
   ): ReturnType<typeof enquirer.prompt> {

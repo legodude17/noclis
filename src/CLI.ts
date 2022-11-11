@@ -56,6 +56,11 @@ function getCommmandOptions(commands: Command[]): Option[] {
   ];
 }
 
+/**
+ * A CLI
+ *
+ * @public
+ */
 export default class CLI<
   Cin extends string,
   Oin extends object,
@@ -65,6 +70,11 @@ export default class CLI<
   #handlers: Handler<Cin, Oin, Ain>[] = [];
   #parser: Parser;
 
+  /**
+   * Create a CLI
+   *
+   * @internal
+   */
   constructor(builder: CLIBuilder<Cin, Oin, Ain>) {
     super(builder.config());
     this.#builder = builder
@@ -131,7 +141,9 @@ export default class CLI<
     this.#parser = new Parser(this.#builder.parseSpec);
   }
 
-  /** @internal */
+  /**
+   * @internal
+   */
   static get helpOption(): Option {
     return {
       name: "help",
@@ -148,7 +160,9 @@ export default class CLI<
     };
   }
 
-  /** @internal */
+  /**
+   * @internal
+   */
   static get helpCommand(): Command {
     return {
       name: "help",
@@ -159,7 +173,9 @@ export default class CLI<
       args: []
     };
   }
-
+  /**
+   * @internal
+   */
   get parseSpec(): ParseSpec {
     const spec = this.#builder.parseSpec;
     return {
@@ -170,6 +186,41 @@ export default class CLI<
     };
   }
 
+  /**
+   * Set a handler for a particalr path of commands.
+   *
+   * @param path - Path of commands. Either a single command or an array. Can use wildcards (`*` and `**`)
+   * @param handler - Handler function. Return anything that can be run as a task, or nothing!
+   *
+   * @remarks
+   * Path can either be:
+   * 1. A single command. This will invoke the handler when that command is used,
+   * passing the subcommand path to it's `path` parameter.
+   * 2. A single star. This will match any one-level command, passing it to `path`.
+   * 3. Two stars (`**`). This will match anything, passing it to `path`.
+   * 4. An array of the above. Any command name will be matched and removed from
+   * the passed path, single stars match a single level, and double stars match
+   * any number of levels.
+   *
+   * Your hanlder function can return void, in which case execution will finish when
+   * it's done. However, it can also return a task. This can be any of the following:
+   * 1. An object with properties `name`, `key`, and `handler`, which will be a
+   * task named `name` with key `key` and which will run `handler`. `handler` can
+   * also return further tasks, which will be nested.
+   * 2. A function, which will be run, and it's `displayName` or `name` will be used
+   * as the task name. This function can also return further tasks, which will be
+   * nested under it.
+   * 3. An iterable of tasks, which will be run in series. This means you can use
+   * a generator (`function *`)!
+   * 4. An async iterable of tasks, which will be run in series. This means you
+   * can use an async generator (`async function*`)!
+   * 5. An array of tasks. The first level of the array will be run in series,
+   * but the second level (if present) will be run concurrently.
+   * Note: this also means you can specify concurrent runs for any given set of
+   * tasks by wrapping them in another level of `[]`.
+   *
+   * @public
+   */
   on(handler: HandlerFunction<Cin, Oin, Ain>): void;
   on(path: HandlerPath<Cin>, handler: HandlerFunction<Cin, Oin, Ain>): void;
   on(
@@ -183,6 +234,17 @@ export default class CLI<
     }
   }
 
+  /**
+   * Run the CLI.
+   *
+   * @param argv - argv, will be parsed according to the builder. Defaults to
+   * `process.argv.slice(2)`.
+   *
+   * @returns `true`, if execution completed successfully, `false` if not.
+   * Errors are outputed directly to the user of your CLI.
+   *
+   * @public
+   */
   async run(argv: Argv = process.argv.slice(2)): Promise<boolean> {
     let result: ParseResult<Cin, O<Oin>, Ain>, options: O<Oin>;
     try {

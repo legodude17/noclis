@@ -13,7 +13,7 @@
     "node": true
   },
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint"],
+  "plugins": ["@typescript-eslint", "eslint-plugin-tsdoc"],
   "parserOptions": {
     "tsConfigRootDir": ".",
     "project": ["./tsconfig.json"]
@@ -25,7 +25,8 @@
     "@typescript-eslint/no-non-null-assertion": "off",
     "n/no-missing-import": "off",
     "no-unused-vars": "off",
-    "unicorn/import-style": "off"
+    "unicorn/import-style": "off",
+    "tsdoc/syntax": "warn"
   },
   "settings": {
     "import/resolver": {

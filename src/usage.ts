@@ -68,6 +68,7 @@ export function oneline(
   options: Option[],
   config: CLIConfig
 ) {
+  args.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   let text = "";
   function add(str: string) {
     text = text.trim() + " " + str.trim();
@@ -170,6 +171,7 @@ function optName(opt: string) {
 
 function args(args: Argument[], indent = 2) {
   const ui = makeUI();
+  args.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   for (const arg of args) {
     ui.div(
       { text: arg.name, padding: [0, 0, 0, indent], width: 20 },

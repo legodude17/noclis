@@ -50,6 +50,11 @@ export default class CLIBuilder<
     }
   }
 
+  /**
+   * Create a new command
+   *
+   * @public
+   */
   command<
     N extends string,
     CC extends string,
@@ -63,6 +68,11 @@ export default class CLIBuilder<
     return this;
   }
 
+  /**
+   * Create a global option
+   *
+   * @public
+   */
   option<Name extends string, Value>(
     builder: (option: OptionBuilder) => OptionBuilder<Name, Value>
   ): CLIBuilder<C, O & { [K in Name]: Value }, A> {
@@ -71,6 +81,11 @@ export default class CLIBuilder<
     return this;
   }
 
+  /**
+   * Create a global argument
+   *
+   * @public
+   */
   argument<Name extends string, Value>(
     builder: (argument: ArgumentBuilder) => ArgumentBuilder<Name, Value>
   ): CLIBuilder<C, O, A & { [K in Name]: Value }> {
@@ -79,6 +94,17 @@ export default class CLIBuilder<
     return this;
   }
 
+  /**
+   * Set or get configuration.
+   *
+   * @remarks
+   * Invoking with no arguments will get the full config object.
+   * Invoking with a single object will copy it shallowly onto the config.
+   * Invoking with a single string will get that string from the config.
+   * Invoking with a string and a value will set that string to that value.
+   *
+   * @public
+   */
   config(): CLIConfig;
   config(object: Partial<CLIConfig>): this;
   config<Key extends keyof CLIConfig>(key: Key, value: CLIConfig[Key]): this;

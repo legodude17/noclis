@@ -91,6 +91,7 @@ export default class Parser {
       ...(command?.options ?? [])
     ].filter(opt => opt.cli);
     this.#state.arguments = [...(command?.args ?? this.spec.arguments)];
+    this.#state.arguments.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   }
 
   #getCommand(): Command | undefined {

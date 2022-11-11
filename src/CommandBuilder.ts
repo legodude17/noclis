@@ -15,7 +15,11 @@ export default class CommandBuilder<
 > {
   #item: Command;
 
-  /* @internal */
+  /**
+   * Create the builder
+   *
+   * @internal
+   */
   constructor(item?: Partial<Command>) {
     this.#item = {
       name: "",
@@ -28,33 +32,67 @@ export default class CommandBuilder<
     Object.assign(this.#item, item ?? {});
   }
 
-  /* @internal */
+  /**
+   * Create a command from the builder
+   *
+   * @internal
+   */
   create(): Command {
     return Object.assign({}, this.#item);
   }
 
+  /**
+   * Set the name of this command
+   *
+   * @public
+   */
   name<Name extends string>(name: Name): CommandBuilder<Name, C, O, A> {
     return new CommandBuilder(Object.assign(this.#item, { name }));
   }
 
+  /**
+   * Set the description of this command
+   *
+   * @public
+   */
   desc(desc: string) {
     this.#item.description = desc;
     return this;
   }
+  /**
+   * Set the description of this command
+   *
+   * @public
+   */
   describe(describe: string) {
     this.#item.description = describe;
     return this;
   }
+  /**
+   * Set the description of this command
+   *
+   * @public
+   */
   description(description: string) {
     this.#item.description = description;
     return this;
   }
 
+  /**
+   * Set aliases for this command
+   *
+   * @public
+   */
   alias(...alias: string[]) {
     this.#item.alias = [...this.#item.alias, ...alias];
     return this;
   }
 
+  /**
+   * Create a subcommand for this command
+   *
+   * @public
+   */
   command<
     R extends string,
     CC extends string,
@@ -67,6 +105,11 @@ export default class CommandBuilder<
     return this;
   }
 
+  /**
+   * Create an option for this command
+   *
+   * @public
+   */
   option<Name extends string, Value>(
     builder: (option: OptionBuilder) => OptionBuilder<Name, Value>
   ): CommandBuilder<N, C, O & { [K in Name]: Value }, A> {
@@ -74,6 +117,11 @@ export default class CommandBuilder<
     return this;
   }
 
+  /**
+   * Create an argument for this command
+   *
+   * @public
+   */
   argument<Name extends string, Value>(
     builder: (argument: ArgumentBuilder) => ArgumentBuilder<Name, Value>
   ): CommandBuilder<N, C, O, A & { [K in Name]: Value }> {

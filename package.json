@@ -1,7 +1,7 @@
 {
   "name": "noclis",
   "description": "NoCLIS: Node CLI System. A pluggable framework, runner, and library for CLIs that are easy and fun to make and use",
-  "version": "0.1.0-0",
+  "version": "0.1.0-beta",
   "homepage": "https://github.com/legodude17/noclis",
   "author": "JDB (https://github.com/legodude17)",
   "repository": "legodude17/noclis",
@@ -14,6 +14,10 @@
     "build": "tsc",
     "start": "tsc --watch"
   },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts"
+  ],
   "devDependencies": {
     "@tsconfig/node18-strictest-esm": "^1.0.1",
     "@types/is-glob": "^4.0.2",
@@ -27,6 +31,7 @@
     "eslint-import-resolver-typescript": "^3.5.1",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-n": "^15.3.0",
+    "eslint-plugin-tsdoc": "^0.2.17",
     "eslint-plugin-unicorn": "^44.0.2",
     "prettier": "^2.7.1",
     "typescript": "^4.8.4"
@@ -66,8 +71,5 @@
   },
   "engines": {
     "node": "~18.4.0 || ~19.0.0"
-  },
-  "noclis": {
-    "logLevel": "silly"
   }
 }
