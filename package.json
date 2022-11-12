@@ -1,7 +1,7 @@
 {
   "name": "noclis",
   "description": "NoCLIS: Node CLI System. A pluggable framework, runner, and library for CLIs that are easy and fun to make and use",
-  "version": "0.1.0-beta",
+  "version": "0.2.0-0",
   "homepage": "https://github.com/legodude17/noclis",
   "author": "JDB (https://github.com/legodude17)",
   "repository": "legodude17/noclis",
@@ -12,7 +12,9 @@
   "scripts": {
     "lint": "eslint src/**/*.ts",
     "build": "tsc",
-    "start": "tsc --watch"
+    "start": "tsc --watch",
+    "pretest": "npm run build",
+    "test": "node ./dist/test.js"
   },
   "files": [
     "dist/**/*.js",

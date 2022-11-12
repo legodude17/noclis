@@ -47,6 +47,7 @@ export interface Command extends Part {
   options: Option[];
   alias: string[];
   args: Argument[];
+  requireSubcommand: boolean;
 }
 
 type Typers = typeof typers;

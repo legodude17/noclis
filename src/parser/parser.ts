@@ -32,6 +32,7 @@ export interface ParseState {
   arg: string;
   opt?: string;
   help: boolean;
+  command?: Command | undefined;
 }
 
 const DEFAULT_STATE: ParseState = {
@@ -85,6 +86,7 @@ export default class Parser {
 
   #loadCommandData() {
     const command = this.#getCommand();
+    this.#state.command = command;
     this.#state.commands = [...(command?.children ?? this.spec.commands)];
     this.#state.options = [
       ...this.spec.options,
@@ -307,8 +309,9 @@ export default class Parser {
       }
     }
     if (
-      this.spec.config.requireCommand &&
-      this.#result.commandPath.length === 0
+      (this.spec.config.requireCommand &&
+        this.#result.commandPath.length === 0) ||
+      this.#state.command?.requireSubcommand
     ) {
       throw new DemandError("command", this.#state);
     }

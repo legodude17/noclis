@@ -27,7 +27,8 @@ export default class CommandBuilder<
       children: [],
       options: [],
       alias: [],
-      args: []
+      args: [],
+      requireSubcommand: false
     };
     Object.assign(this.#item, item ?? {});
   }
@@ -126,6 +127,16 @@ export default class CommandBuilder<
     builder: (argument: ArgumentBuilder) => ArgumentBuilder<Name, Value>
   ): CommandBuilder<N, C, O, A & { [K in Name]: Value }> {
     this.#item.args.push(builder(new ArgumentBuilder({})).create());
+    return this;
+  }
+
+  /**
+   * Set if this command requires a subcommand provided
+   *
+   * @public
+   */
+  requireSubcommand(val = true) {
+    this.#item.requireSubcommand = val;
     return this;
   }
 }

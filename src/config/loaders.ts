@@ -7,7 +7,7 @@ type Loader = (
   contents: string
 ) => Promisable<object | undefined>;
 
-type Loaders = { [k: string]: Loader } & { noExt?: Loader };
+export type Loaders = { [k: string]: Loader } & { noExt?: Loader };
 
 let yaml: typeof import("js-yaml"),
   importFresh: typeof import("import-fresh"),

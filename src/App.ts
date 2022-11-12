@@ -2,7 +2,7 @@ import type { LogLevel } from "proc-log";
 import type { ColorSupportLevel } from "chalk";
 import Display from "./logging/Display.js";
 import LogFile from "./logging/LogFile.js";
-import loadConfig from "./config/config.js";
+import loadConfig, { getDefaults, loadConfigFile } from "./config/config.js";
 import type { Option } from "./types.js";
 import { Task } from "./logging/Task.js";
 import createLogger, { Logger } from "./logging/createLogger.js";
@@ -17,6 +17,7 @@ export interface AppOptions {
   maxLogFiles: number;
   interactive: boolean;
   ci: boolean;
+  config: string;
 }
 
 /**
@@ -55,9 +56,14 @@ export default class App {
     options: O,
     spec: Option[]
   ): Promise<O> {
-    const result = await loadConfig<O>(this.#name, spec, options, {
-      interactive: options.interactive
-    });
+    const result = options.config
+      ? (Object.assign(
+          getDefaults(spec),
+          await loadConfigFile(options.config, this.#name, spec)
+        ) as O)
+      : await loadConfig<O>(this.#name, spec, options, {
+          interactive: options.interactive
+        });
     this.#options = result;
     this.#display = new Display(this.#name, {
       colorLevel: result.colorLevel,

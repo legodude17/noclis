@@ -206,7 +206,8 @@ export function wrap(str: string, char: keyof typeof braces) {
 }
 
 export function stringify(val?: unknown): string {
-  if (typeof val === "undefined") return "";
+  if (val === undefined) return "undefined";
+  if (val === null) return "null";
   if (typeof val === "string") return val;
   if (typeof val === "number" || typeof val === "bigint")
     return val.toLocaleString();
@@ -214,11 +215,17 @@ export function stringify(val?: unknown): string {
   if (typeof val === "symbol") return val.toString();
   if (val instanceof Stream) return "[stream]";
   if (val instanceof Date) return val.toLocaleString();
-  if (val instanceof Object) return val.toString();
   if (Array.isArray(val))
     return val
       .flat()
       .map(v => stringify(v))
       .join(", ");
+  if (typeof val === "object") {
+    try {
+      return JSON.stringify(val);
+    } catch {
+      return val.toString();
+    }
+  }
   return "[value]";
 }

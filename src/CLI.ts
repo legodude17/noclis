@@ -11,21 +11,23 @@ import type {
   PromptOption,
   Task
 } from "./types.js";
-import { oneline, usage } from "./usage.js";
+import { oneline, stringify, usage } from "./usage.js";
 import logger, { LogLevel } from "proc-log";
 import App from "./App.js";
 import supports from "supports-color";
-import { join } from "node:path";
+import { extname, join } from "node:path";
 import { homedir } from "node:os";
 import type { ColorSupportLevel } from "chalk";
 import type { Task as TaskC } from "./logging/Task.js";
-import type { NotFoundError } from "./parser/errors.js";
+import type { DemandError, NotFoundError } from "./parser/errors.js";
 import { distance } from "fastest-levenshtein";
 import { indent } from "./util/strings.js";
 import ci from "@npmcli/ci-detect";
-import enquirer from "enquirer";
 import typers from "./optionTypes.js";
 import Parser from "./parser/parser.js";
+import Enquirer from "enquirer";
+import { readFile, writeFile } from "node:fs/promises";
+import { cwd } from "node:process";
 
 type AddOpts = {
   version: boolean;
@@ -37,6 +39,8 @@ type AddOpts = {
   maxLogFiles: number;
   interactive: boolean;
   ci: boolean;
+  config: string;
+  global: boolean;
 };
 
 type O<Oin extends object> = Oin & AddOpts;
@@ -120,6 +124,7 @@ export default class CLI<
           .describe("Log level to use")
           .alias("level")
           .type((str: string): LogLevel => str as LogLevel)
+          // eslint-disable-next-line import/no-named-as-default-member
           .choices(...logger.LEVELS)
           .default("notice")
       )
@@ -137,6 +142,71 @@ export default class CLI<
           .type("boolean")
           .default(false)
           .config(false)
+      )
+      .option(opt => opt.name("config").alias("c").type("path").default(""))
+      .command(command =>
+        command
+          .name("config")
+          .desc("Get or set configuration")
+          .command(c =>
+            c
+              .name("get")
+              .describe("Get a config option")
+              .argument(arg =>
+                arg
+                  .name("name")
+                  .desc("Name of the config option to get")
+                  .type("string")
+                  .required()
+              )
+          )
+          .command(c =>
+            c
+              .name("set")
+              .describe("Set a config option")
+              .argument(arg =>
+                arg
+                  .name("name")
+                  .desc("Config option to set")
+                  .type("string")
+                  .required()
+              )
+              .argument(arg =>
+                arg
+                  .name("value")
+                  .desc("Value to set it to")
+                  .type("string")
+                  .required()
+              )
+              .option(opt =>
+                opt
+                  .name("global")
+                  .alias("g")
+                  .desc("Set global confiuration")
+                  .type("boolean")
+                  .default(false)
+                  .config(false)
+              )
+          )
+          .command(c =>
+            c.name("list").alias("ls").describe("List configuration")
+          )
+          .command(c =>
+            c
+              .name("setup")
+              .alias("set-all")
+              .describe("Set configuration from flags or prompts")
+              .option(opt =>
+                opt
+                  .name("global")
+                  .alias("g")
+                  .desc("Set global confiuration")
+                  .type("boolean")
+                  .default(false)
+                  .config(false)
+              )
+          )
+          .requireSubcommand()
       );
     this.#parser = new Parser(this.#builder.parseSpec);
   }
@@ -170,7 +240,8 @@ export default class CLI<
       alias: [],
       children: [],
       options: [],
-      args: []
+      args: [],
+      requireSubcommand: false
     };
   }
   /**
@@ -246,17 +317,20 @@ export default class CLI<
    * @public
    */
   async run(argv: Argv = process.argv.slice(2)): Promise<boolean> {
-    let result: ParseResult<Cin, O<Oin>, Ain>, options: O<Oin>;
+    let result: ParseResult<Cin, O<Oin>, Ain>,
+      options: O<Oin>,
+      cliOptions: Record<string, unknown>;
+    const spec = [
+      ...this.parseSpec.options,
+      ...getCommmandOptions(this.parseSpec.commands)
+    ];
     try {
       result = (await this.#parser.parse(argv)) as ParseResult<
         Cin,
         O<Oin>,
         Ain
       >;
-      const spec = [
-        ...this.parseSpec.options,
-        ...getCommmandOptions(this.parseSpec.commands)
-      ];
+      cliOptions = result.options;
       result.options = options = await this.config(result.options, spec);
       const args = [
         ...this.parseSpec.arguments,
@@ -267,6 +341,7 @@ export default class CLI<
       const argObj = result.arguments as Record<string, unknown>;
       if (options.interactive) {
         const prompts: PromptOption[] = [];
+        const enquirer = new Enquirer(undefined, argObj);
         for (const arg of args) {
           if (arg.prompt && !argObj[arg.name]) {
             prompts.push(Object.assign({}, arg.prompt, { name: arg.name }));
@@ -298,6 +373,33 @@ export default class CLI<
           }
           case "DemandError": {
             console.error(`${cli}: ${error.message}`);
+            const err = error as DemandError;
+            switch (err.type) {
+              case "command": {
+                console.error(indent("Possible commands:", 4));
+                console.error(
+                  indent(err.context.commands.map(c => c.name).join(", "), 8)
+                );
+                break;
+              }
+              case "argument":
+              case "option": {
+                console.error("Usage:");
+                console.error(
+                  indent(
+                    oneline(
+                      [cli, ...err.context.commandPath].join(" "),
+                      "",
+                      err.context.arguments,
+                      err.context.options,
+                      this.#builder.config()
+                    ),
+                    4
+                  )
+                );
+                break;
+              }
+            }
             return false;
           }
           case "NotFoundError": {
@@ -325,7 +427,7 @@ export default class CLI<
                 } else if (close.length > 0) {
                   console.error("Did you mean one of these?");
                   for (const cmd of close) {
-                    console.log(
+                    console.error(
                       `   ${cli} ${err.context.commandPath.join(" ")} ${
                         cmd.name
                       }${cmd.description ? `: ${cmd.description}` : ""}`
@@ -342,26 +444,17 @@ export default class CLI<
                 }
                 break;
               }
+              case "argument":
               case "option": {
                 console.error("Usage:");
-                let current: Command | undefined;
-                // @ts-expect-error Doesn't recongize the filtering
-                const commands: Command[] = err.context.commandPath
-                  .map(
-                    p =>
-                      (current = (
-                        current?.children ?? this.parseSpec.commands
-                      ).find(v => v.name === p || v.alias.includes(p)))
-                  )
-                  .filter(Boolean);
                 console.error(
                   indent(
-                    usage.command(
-                      commands.pop()!,
-                      this.#builder.config(),
-                      this.#builder.config("name") +
-                        " " +
-                        commands.map(c => c.name).join(" ")
+                    oneline(
+                      [cli, ...err.context.commandPath].join(" "),
+                      "",
+                      err.context.arguments,
+                      err.context.options,
+                      this.#builder.config()
                     ),
                     4
                   )
@@ -409,7 +502,7 @@ export default class CLI<
         console.error(`Command not found: ${path.join(" ")}`);
         return false;
       }
-      console.log(
+      console.error(
         usage.command(
           commands.pop()!,
           this.#builder.config(),
@@ -423,6 +516,86 @@ export default class CLI<
     if (result.options.version) {
       const { name, version } = this.#builder.config();
       console.log(`${name} v${version}`);
+      return true;
+    }
+    if (result.commandPath[0] === "config") {
+      const setConfig = async (toSet: Record<string, unknown>) => {
+        const cli = this.#builder.config("name");
+        let file = `.${cli}rc.json`;
+        if (options.config && extname(options.config) === ".json") {
+          file = options.config;
+        } else if (options.global) {
+          file = join(homedir(), file);
+        } else {
+          file = join(cwd(), file);
+        }
+        let obj: Record<string, unknown>;
+        try {
+          obj = JSON.parse(await readFile(file, "utf8")) as Record<
+            string,
+            unknown
+          >;
+        } catch {
+          obj = {};
+        }
+        this.log.info("Writing to ", file);
+        Object.assign(obj, toSet);
+        await writeFile(file, JSON.stringify(obj), "utf8");
+      };
+      switch (result.commandPath[1]) {
+        case "get": {
+          console.log(
+            (result.options as Record<string, unknown>)[
+              (result.arguments as { name: string }).name
+            ]
+          );
+          break;
+        }
+        case "set": {
+          const name = (result.arguments as { name: string }).name;
+          const value = (result.arguments as { value: string }).value;
+          const opt = spec.find(o => o.name === name);
+          if (!opt) {
+            console.error("Cannot find option", name);
+            return false;
+          }
+          await setConfig({ [name]: value });
+          break;
+        }
+        case "list": {
+          for (const [key, value] of Object.entries(options)) {
+            console.log(`${key} = ${stringify(value)}`);
+          }
+          break;
+        }
+        case "set-all":
+        case "setup": {
+          const prompts: PromptOption[] = [];
+          const toSet: Record<string, unknown> = {};
+          const enquirer = new Enquirer({
+            ...result.arguments,
+            ...result.options
+          });
+          for (const opt of spec) {
+            if (opt.config) {
+              toSet[opt.name] = cliOptions[opt.name];
+              if (opt.prompt) {
+                prompts.push(
+                  Object.assign({ initial: toSet[opt.name] }, opt.prompt, {
+                    name: opt.name
+                  })
+                );
+              }
+            }
+          }
+          Object.assign(toSet, await enquirer.prompt(prompts));
+          await setConfig(toSet);
+          break;
+        }
+        default: {
+          return false;
+        }
+      }
       return true;
     }
     const runTask = async (
