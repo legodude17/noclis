@@ -614,7 +614,7 @@ export default class CLI<
           const retVal = await task(taskObj, result.arguments, options);
           if (typeof retVal === "string") taskObj.complete(retVal);
           else {
-            if (retVal) await runTask(retVal);
+            if (retVal) await runTask(retVal, taskObj);
             taskObj.complete();
           }
         } catch (error) {
@@ -643,9 +643,11 @@ export default class CLI<
         taskObj.start();
         try {
           const retVal = await task.handler(taskObj, result.arguments, options);
-          if (!retVal) taskObj.complete();
-          else if (typeof retVal === "string") taskObj.complete(retVal);
-          else await runTask(retVal);
+          if (typeof retVal === "string") taskObj.complete(retVal);
+          else {
+            if (retVal) await runTask(retVal, taskObj);
+            taskObj.complete();
+          }
         } catch (error) {
           taskObj.error(error as string | Error);
         }

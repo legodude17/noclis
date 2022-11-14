@@ -3,18 +3,6 @@ import type { PromptOption } from "./types.js";
 
 const app = noclis(cli =>
   cli
-    .option(opt =>
-      opt
-        .name("rwpath")
-        .desc("Path to RimWorld")
-        .type("path")
-        .default("~")
-        .prompt({
-          type: "input",
-          message: "What's the path to your RimWorld installation?"
-        } as PromptOption)
-        .config(false)
-    )
     .command(command =>
       command
         .name("login")
@@ -45,6 +33,19 @@ const app = noclis(cli =>
     .config("requireCommand", true)
 );
 
-app.on("login", a => console.log(a));
+const wait = (n: number) => (): Promise<void> =>
+  new Promise(res => setTimeout(res, n * 1000));
+
+app.on("login", () => ({
+  name: "Do the thing",
+  key: "do",
+  handler: () => [
+    {
+      name: "Step 1",
+      key: "1",
+      handler: wait(1)
+    }
+  ]
+}));
 
 process.exitCode = (await app.run()) ? 0 : 1;
