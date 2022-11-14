@@ -192,8 +192,7 @@ export default class Parser {
     } else if (option.array) {
       const current = this.#result.options[option.name];
       this.#result.options[option.name] = [
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        ...(Array.isArray(current) ? current : []),
+        ...(Array.isArray(current) ? (current as unknown[]) : []),
         ...(await Promise.all(
           value.split(/, /g).map(str => this.#getVal(str, option.type))
         ))
@@ -214,8 +213,7 @@ export default class Parser {
     if (arg.array) {
       const current = this.#result.arguments[arg.name];
       const array = [
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        ...(Array.isArray(current) ? current : []),
+        ...(Array.isArray(current) ? (current as unknown[]) : []),
         val
       ];
       this.#result.arguments[arg.name] = array;

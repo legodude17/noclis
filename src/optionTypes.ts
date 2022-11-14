@@ -44,7 +44,6 @@ const path: OptionTyper<string | string[]> = {
     return pathExists(resolve(str));
   },
   coerce(str) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
     if (isGlob(str)) return globby(str);
     return resolve(str);
   },

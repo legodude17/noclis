@@ -12,7 +12,6 @@ function createLogMethod(level: LogLevel, name: string) {
 
 export default function createLogger(name: string): Logger {
   const logger: Partial<Logger> = {};
-  // eslint-disable-next-line import/no-named-as-default-member
   for (const level of procLogger.LEVELS) {
     logger[level] = createLogMethod(level, name);
   }

@@ -124,7 +124,6 @@ export default class CLI<
           .describe("Log level to use")
           .alias("level")
           .type((str: string): LogLevel => str as LogLevel)
-          // eslint-disable-next-line import/no-named-as-default-member
           .choices(...logger.LEVELS)
           .default("notice")
       )
@@ -613,9 +612,11 @@ export default class CLI<
         taskObj.start();
         try {
           const retVal = await task(taskObj, result.arguments, options);
-          if (!retVal) taskObj.complete();
-          else if (typeof retVal === "string") taskObj.complete(retVal);
-          else await runTask(retVal);
+          if (typeof retVal === "string") taskObj.complete(retVal);
+          else {
+            if (retVal) await runTask(retVal);
+            taskObj.complete();
+          }
         } catch (error) {
           taskObj.error(error as string | Error);
         }

@@ -13,8 +13,10 @@ let yaml: typeof import("js-yaml"),
   importFresh: typeof import("import-fresh"),
   ini: typeof import("ini");
 const loadCJS = async (path: string) => {
-  // eslint-disable-next-line unicorn/no-await-expression-member
-  if (!importFresh) importFresh = (await import("import-fresh")).default;
+  if (!importFresh) {
+    const temp = await import("import-fresh");
+    importFresh = temp.default;
+  }
   return importFresh(path);
 };
 const loadYaml = async (_: string, content: string) => {

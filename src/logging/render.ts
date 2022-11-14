@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/switch-case-braces */
 import type { DisplayOptions } from "./Display.js";
 import type { TaskInfo } from "./Task.js";
 import figures from "figures";
@@ -15,17 +14,21 @@ function renderSpinner(spinner: Spinner, ms: number) {
 
 function taskIcon(task: TaskInfo, ms: number): string {
   switch (task.status) {
-    case "COMPLETE":
+    case "COMPLETE": {
       return chalk.green(figures.tick);
-    case "ERRORED":
+    }
+    case "ERRORED": {
       return chalk.red(figures.cross);
+    }
     case "RUNNING": {
       return chalk.blue(renderSpinner(spinners.dots, ms));
     }
-    case "PENDING":
+    case "PENDING": {
       return chalk.yellow(figures.pointer);
-    case "SKIPPED":
+    }
+    case "SKIPPED": {
       return chalk.yellow(figures.arrowDown);
+    }
   }
 }
 
@@ -55,14 +58,18 @@ function renderProgress(
   return options.progressFormat.replace(/{(\w+)}/g, (_, key: string) => {
     const val = context[key as keyof typeof context];
     switch (typeof val) {
-      case "number":
+      case "number": {
         return val.toFixed(2);
-      case "boolean":
+      }
+      case "boolean": {
         return val ? "true" : "false";
-      case "undefined":
+      }
+      case "undefined": {
         return "";
-      case "string":
+      }
+      case "string": {
         return val;
+      }
     }
   });
 }
