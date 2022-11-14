@@ -8,10 +8,12 @@ const app = noclis(cli =>
         .name("rwpath")
         .desc("Path to RimWorld")
         .type("path")
+        .default("~")
         .prompt({
           type: "input",
           message: "What's the path to your RimWorld installation?"
         } as PromptOption)
+        .config(false)
     )
     .command(command =>
       command

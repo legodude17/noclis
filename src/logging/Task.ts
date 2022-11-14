@@ -10,7 +10,13 @@ export type TaskStatus =
   | "COMPLETE"
   | "ERRORED";
 
-export type TaskEvent = "create" | "start" | "skip" | "error" | "complete";
+export type TaskEvent =
+  | "create"
+  | "start"
+  | "skip"
+  | "error"
+  | "complete"
+  | "output";
 
 export interface TaskInfo {
   messages: string[];
@@ -66,11 +72,12 @@ export class Task {
     this.#emit("skip");
   }
 
-  complete() {
+  complete(message?: string) {
+    if (message) this.#emit("output", message);
     this.#emit("complete");
   }
 
-  error(err?: Error) {
+  error(err?: Error | string) {
     this.#emit("error", err);
   }
 

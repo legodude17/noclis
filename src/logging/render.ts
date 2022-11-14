@@ -74,7 +74,7 @@ function renderInner(
   ms: number,
   all: Map<string, TaskInfo>
 ): string {
-  let string = `${taskIcon(task, ms)} ${task.name}`;
+  let string = `${taskIcon(task, ms)} ${chalk.bold(task.name)}`;
   const message = task.messages[task.messages.length - 1];
   if (task.status === "COMPLETE" || task.status === "ERRORED") {
     string += ` - ${message ?? task.status.toLocaleLowerCase()} (${chalk.gray(

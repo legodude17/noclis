@@ -164,6 +164,11 @@ export default class Display {
       }
       case "error": {
         const task = this.#getTask(key);
+        if (typeof args[0] === "string") {
+          task.messages.push(args[0]);
+        } else if (args[0] instanceof Error) {
+          task.messages.push(args[0].message);
+        }
         task.endTime = process.hrtime.bigint();
         task.status = "ERRORED";
         break;
@@ -180,6 +185,12 @@ export default class Display {
           !this.#options.term
         );
         return;
+      }
+      case "output": {
+        const task = this.#getTask(key);
+        const m = args[0] as string;
+        task.messages.push(m);
+        this.#output(`${task.name}: ${m}`, !this.#options.term);
       }
     }
     this.#output(`${type} ${this.#getTask(key).name}`, !this.#options.term);

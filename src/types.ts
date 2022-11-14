@@ -94,26 +94,31 @@ export interface ParseResult<
 
 export type Task<O, A> =
   | {
-      (task: TaskC, args: A, options: O): Promisable<Task<O, A>>;
+      (task: TaskC, args: A, options: O): Promisable<
+        Task<O, A> | string | void
+      >;
       displayName?: string;
     }
   | {
       name: string;
       key?: string;
-      handler: (task: TaskC, args: A, options: O) => Promisable<Task<O, A>>;
+      handler: (
+        task: TaskC,
+        args: A,
+        options: O
+      ) => Promisable<Task<O, A> | string | void>;
     }
   | Task<O, A>[]
   | Task<O, A>[][]
   | Iterable<Task<O, A>>
-  | AsyncIterable<Task<O, A>>
-  | void;
+  | AsyncIterable<Task<O, A>>;
 
 export type HandlerFunction<C extends string, O, A> = (
   args: A,
   options: O,
   path: C[],
   app: App
-) => Promisable<Task<O, A>>;
+) => Promisable<Task<O, A> | void>;
 
 export type HandlerPath<C extends string> = (C | "*" | "**")[] | C | "*" | "**";
 

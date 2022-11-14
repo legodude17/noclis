@@ -474,9 +474,8 @@ export default class CLI<
           }
         }
       }
-      throw new TypeError("Unexpected throw while parsing", {
-        cause: error
-      });
+      console.error(error);
+      return false;
     }
     if (result.options.color === false) {
       result.options.colorLevel = 0;
@@ -612,8 +611,14 @@ export default class CLI<
               : this.task(task.displayName ?? task.name)
             : parent ?? this.task("");
         taskObj.start();
-        await runTask(await task(taskObj, result.arguments, options), taskObj);
-        taskObj.complete();
+        try {
+          const retVal = await task(taskObj, result.arguments, options);
+          if (!retVal) taskObj.complete();
+          else if (typeof retVal === "string") taskObj.complete(retVal);
+          else await runTask(retVal);
+        } catch (error) {
+          taskObj.error(error as string | Error);
+        }
       } else if (Array.isArray(task)) {
         for (const inner of task) {
           await (Array.isArray(inner)
@@ -635,11 +640,14 @@ export default class CLI<
           ? parent.task(task.name, task.key)
           : this.task(task.name, task.key);
         taskObj.start();
-        await runTask(
-          await task.handler(taskObj, result.arguments, options),
-          taskObj
-        );
-        taskObj.complete();
+        try {
+          const retVal = await task.handler(taskObj, result.arguments, options);
+          if (!retVal) taskObj.complete();
+          else if (typeof retVal === "string") taskObj.complete(retVal);
+          else await runTask(retVal);
+        } catch (error) {
+          taskObj.error(error as string | Error);
+        }
       }
     };
     for (const handler of this.#handlers) {
@@ -647,9 +655,13 @@ export default class CLI<
       if (this.#checkPaths(handler.path, result.commandPath, resultPath)) {
         try {
           this.start();
-          await runTask(
-            await handler.handler(result.arguments, options, resultPath, this)
+          const retVal = await handler.handler(
+            result.arguments,
+            options,
+            resultPath,
+            this
           );
+          if (retVal) await runTask(retVal);
           this.stop();
           return true;
         } catch (error) {

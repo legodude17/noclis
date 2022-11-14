@@ -27,13 +27,12 @@ export default async function loadConfig<T extends Record<string, unknown>>(
   stopDirectory = path.resolve(stopDirectory);
   const loaded: (object | undefined)[] = [];
   while (curDirectory) {
-    curDirectory = path.dirname(curDirectory);
     loaded.push(
       ...(await loadAllConfigFrom(name, curDirectory, spec, loaders))
     );
-    if (curDirectory !== stopDirectory) break;
+    curDirectory = path.dirname(curDirectory);
+    if (curDirectory === stopDirectory) break;
   }
-  const defaults = getDefaults(spec);
   const result = Object.assign(
     {},
     ...loaded.filter(l => l != undefined).reverse(),
@@ -42,10 +41,11 @@ export default async function loadConfig<T extends Record<string, unknown>>(
   if (interactive) {
     const prompts: PromptOption[] = [];
     const enquirer = new Enquirer({}, result);
+    const defaults = getDefaults(spec, false);
     for (const opt of spec) {
       if (opt.prompt && !result[opt.name]) {
         prompts.push(
-          Object.assign({ inital: defaults[opt.name] }, opt.prompt, {
+          Object.assign({ initial: defaults[opt.name] }, opt.prompt, {
             name: opt.name
           })
         );
@@ -53,7 +53,7 @@ export default async function loadConfig<T extends Record<string, unknown>>(
     }
     Object.assign(result, await enquirer.prompt(prompts));
   }
-  return Object.assign(defaults, result);
+  return Object.assign(getDefaults(spec), result);
 }
 
 export async function loadAllConfigFrom(
@@ -74,7 +74,7 @@ export async function loadAllConfigFrom(
   return await Promise.all(
     allFiles
       .filter(file => toMatch.has(file))
-      .map(file => loadConfigFile(file, name, spec, loaders))
+      .map(file => loadConfigFile(path.resolve(dir, file), name, spec, loaders))
   );
 }
 
@@ -111,10 +111,10 @@ export async function loadConfigFile(
   return result;
 }
 
-export function getDefaults(spec: Option[]) {
+export function getDefaults(spec: Option[], onlyConfig = true) {
   const defaults: Record<string, unknown> = {};
   for (const opt of spec) {
-    if (opt.config) {
+    if (!onlyConfig || opt.config) {
       defaults[opt.name] =
         opt.default ??
         (typeof opt.type === "function"
