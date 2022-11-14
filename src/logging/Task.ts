@@ -77,8 +77,13 @@ export class Task {
     this.#emit("complete");
   }
 
-  error(err?: Error | string) {
+  error(err?: Error | string | null | undefined) {
     this.#emit("error", err);
+  }
+
+  output(str: string) {
+    str = str.trim();
+    if (str) this.#emit("output", str);
   }
 
   progress(name: string, total?: number): Progress;

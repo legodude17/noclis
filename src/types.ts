@@ -4,6 +4,9 @@ import type typers from "./optionTypes.js";
 import type { Task as TaskC } from "./logging/Task.js";
 import type App from "./App.js";
 import type { prompt } from "enquirer";
+import type { Readable } from "node:stream";
+import type { ChildProcess } from "node:child_process";
+import type Minipass from "minipass";
 
 export interface Part {
   name: string;
@@ -95,7 +98,7 @@ export interface ParseResult<
 export type Task<O, A> =
   | {
       (task: TaskC, args: A, options: O): Promisable<
-        Task<O, A> | string | void
+        TaskResult<O, A> | string | void
       >;
       displayName?: string;
     }
@@ -106,19 +109,30 @@ export type Task<O, A> =
         task: TaskC,
         args: A,
         options: O
-      ) => Promisable<Task<O, A> | string | void>;
-    }
+      ) => Promisable<TaskResult<O, A>>;
+    };
+
+export type RunnableTask<O, A> =
+  | Task<O, A>
   | Task<O, A>[]
   | Task<O, A>[][]
   | Iterable<Task<O, A>>
   | AsyncIterable<Task<O, A>>;
+
+export type TaskResult<O, A> =
+  | RunnableTask<O, A>
+  | string
+  | Readable
+  | Minipass.Readable
+  | ChildProcess
+  | void;
 
 export type HandlerFunction<C extends string, O, A> = (
   args: A,
   options: O,
   path: C[],
   app: App
-) => Promisable<Task<O, A> | void>;
+) => Promisable<RunnableTask<O, A> | void>;
 
 export type HandlerPath<C extends string> = (C | "*" | "**")[] | C | "*" | "**";
 

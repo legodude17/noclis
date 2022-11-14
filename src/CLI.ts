@@ -9,7 +9,9 @@ import type {
   ParseResult,
   ParseSpec,
   PromptOption,
-  Task
+  RunnableTask,
+  Task,
+  TaskResult
 } from "./types.js";
 import { oneline, stringify, usage } from "./usage.js";
 import logger, { LogLevel } from "proc-log";
@@ -28,6 +30,15 @@ import Parser from "./parser/parser.js";
 import Enquirer from "enquirer";
 import { readFile, writeFile } from "node:fs/promises";
 import { cwd } from "node:process";
+import Minipass from "minipass";
+import { isReadableStream } from "is-stream";
+import { ChildProcess } from "node:child_process";
+import { createInterface } from "node:readline";
+import LineStream from "./util/LineStream.js";
+import type { Promisable } from "type-fest";
+import { isPromise } from "node:util/types";
+import type EventEmitter from "node:events";
+import split2 from "split2";
 
 type AddOpts = {
   version: boolean;
@@ -58,6 +69,17 @@ function getCommmandOptions(commands: Command[]): Option[] {
     ...commands.flatMap(com => com.options),
     ...commands.flatMap(com => getCommmandOptions(com.children))
   ];
+}
+
+function isPromiseLike<T>(obj: Promisable<T>): obj is PromiseLike<T> {
+  return isPromise(obj);
+}
+
+function waitForEnd(ee: EventEmitter): Promise<void> {
+  return new Promise((res, rej) => {
+    ee.on("end", res);
+    ee.on("error", rej);
+  });
 }
 
 /**
@@ -596,8 +618,54 @@ export default class CLI<
       }
       return true;
     }
+    const handleReturn = async (
+      retVal: Promisable<TaskResult<Oin, Ain>>,
+      taskObj: TaskC
+    ) => {
+      if (typeof retVal === "string") {
+        taskObj.complete(retVal);
+      } else if (isReadableStream(retVal)) {
+        retVal.on("error", (err?: Error | string) => taskObj.error(err));
+        const rl = createInterface({
+          input: retVal,
+          crlfDelay: Number.POSITIVE_INFINITY
+        });
+        for await (const line of rl) {
+          taskObj.output(line);
+        }
+        taskObj.complete();
+      } else if (Minipass.isStream(retVal)) {
+        const ls = new LineStream();
+        (retVal as unknown as Minipass).pipe(ls);
+        ls.on("data", line => taskObj.output(line.toString()));
+        ls.on("end", () => taskObj.complete());
+        await waitForEnd(ls);
+      } else if (retVal instanceof ChildProcess) {
+        if (retVal.stderr) {
+          retVal.stderr
+            .pipe(split2(/(\r?\n)|(\033[0-2]?K)/g))
+            .on("data", (line: string) => taskObj.output(line));
+        }
+        if (retVal.stdout) {
+          retVal.stdout
+            .pipe(split2(/(\r?\n)|(\033[0-2]?K)/g))
+            .on("data", (line: string) => taskObj.output(line));
+        }
+        retVal.on("error", (err?: Error | string) => taskObj.error(err));
+        retVal.on("exit", (code, signal) => {
+          if (code === 0) taskObj.complete();
+          else taskObj.error(signal);
+        });
+        await new Promise(res => retVal.on("exit", res));
+      } else if (isPromiseLike(retVal)) {
+        await handleReturn(await retVal, taskObj);
+      } else {
+        if (retVal) await runTask(retVal, taskObj);
+        taskObj.complete();
+      }
+    };
     const runTask = async (
-      task: Task<Oin, Ain>,
+      task: RunnableTask<Oin, Ain>,
       parent?: TaskC
     ): Promise<void> => {
       if (!task) {
@@ -611,12 +679,7 @@ export default class CLI<
             : parent ?? this.task("");
         taskObj.start();
         try {
-          const retVal = await task(taskObj, result.arguments, options);
-          if (typeof retVal === "string") taskObj.complete(retVal);
-          else {
-            if (retVal) await runTask(retVal, taskObj);
-            taskObj.complete();
-          }
+          await handleReturn(task(taskObj, result.arguments, options), taskObj);
         } catch (error) {
           taskObj.error(error as string | Error);
         }
@@ -642,12 +705,10 @@ export default class CLI<
           : this.task(task.name, task.key);
         taskObj.start();
         try {
-          const retVal = await task.handler(taskObj, result.arguments, options);
-          if (typeof retVal === "string") taskObj.complete(retVal);
-          else {
-            if (retVal) await runTask(retVal, taskObj);
-            taskObj.complete();
-          }
+          await handleReturn(
+            task.handler(taskObj, result.arguments, options),
+            taskObj
+          );
         } catch (error) {
           taskObj.error(error as string | Error);
         }

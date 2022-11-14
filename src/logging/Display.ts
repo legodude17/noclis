@@ -43,13 +43,15 @@ export default class Display {
     process.on("log", this.#logHandler.bind(this));
     this.#client.on("progress", this.#progressHandler.bind(this));
     process.on("task", this.#taskHandler.bind(this));
-    this.#id = setInterval(this.#render.bind(this), 10);
+    if (this.#options.term) this.#id = setInterval(this.#render.bind(this), 10);
   }
 
   stop() {
     this.#client.stop();
-    clearInterval(this.#id);
-    this.#render();
+    if (this.#options.term) {
+      clearInterval(this.#id);
+      this.#render();
+    }
     logUpdate.done();
   }
 
@@ -178,10 +180,7 @@ export default class Display {
         task.endTime = process.hrtime.bigint();
         task.status = "COMPLETE";
         this.#output(
-          `${task.name} ${type} in (${format(
-            task.endTime - task.startTime,
-            2
-          )})`,
+          `${task.name} ${type} in ${format(task.endTime - task.startTime, 2)}`,
           !this.#options.term
         );
         return;
@@ -191,6 +190,7 @@ export default class Display {
         const m = args[0] as string;
         task.messages.push(m);
         this.#output(`${task.name}: ${m}`, !this.#options.term);
+        return;
       }
     }
     this.#output(`${type} ${this.#getTask(key).name}`, !this.#options.term);
