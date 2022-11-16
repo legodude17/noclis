@@ -1,7 +1,7 @@
 {
   "name": "noclis",
   "description": "NoCLIS: Node CLI System. A pluggable framework, runner, and library for CLIs that are easy and fun to make and use",
-  "version": "0.3.1-beta.0",
+  "version": "0.3.1-beta.1",
   "homepage": "https://github.com/legodude17/noclis",
   "author": "JDB (https://github.com/legodude17)",
   "repository": "legodude17/noclis",
@@ -37,7 +37,6 @@
     "eslint-plugin-n": "^15.3.0",
     "eslint-plugin-tsdoc": "^0.2.17",
     "eslint-plugin-unicorn": "^44.0.2",
-    "patch-package": "^6.5.0",
     "prettier": "^2.7.1",
     "typescript": "^4.8.4"
   },
@@ -50,6 +49,7 @@
     "@types/fs-minipass": "^2.1.0",
     "@types/ini": "^1.3.31",
     "@types/js-yaml": "^4.0.5",
+    "patch-package": "^6.5.0",
     "chalk": "^5.1.2",
     "cli-spinners": "^2.7.0",
     "cliui": "^8.0.1",
