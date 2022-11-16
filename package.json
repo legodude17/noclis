@@ -14,7 +14,8 @@
     "build": "tsc",
     "start": "tsc --watch",
     "pretest": "npm run build",
-    "test": "node ./dist/test.js"
+    "test": "node ./dist/test.js",
+    "postinstall": "patch-package"
   },
   "files": [
     "dist/**/*.js",
@@ -36,6 +37,7 @@
     "eslint-plugin-n": "^15.3.0",
     "eslint-plugin-tsdoc": "^0.2.17",
     "eslint-plugin-unicorn": "^44.0.2",
+    "patch-package": "^6.5.0",
     "prettier": "^2.7.1",
     "typescript": "^4.8.4"
   },

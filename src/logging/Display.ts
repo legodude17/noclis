@@ -183,6 +183,11 @@ export default class Display {
           `${task.name} ${type} in ${format(task.endTime - task.startTime, 2)}`,
           !this.#options.term
         );
+        if (task.parent) {
+          const parent = this.#getTask(task.parent);
+          const cm = task.messages[task.messages.length - 1];
+          if (cm) parent.messages.push(cm);
+        }
         return;
       }
       case "output": {

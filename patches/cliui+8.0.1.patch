@@ -1,0 +1,10 @@
+diff --git a/node_modules/cliui/build/index.d.cts b/node_modules/cliui/build/index.d.cts
+index 4567f94..9b076e0 100644
+--- a/node_modules/cliui/build/index.d.cts
++++ b/node_modules/cliui/build/index.d.cts
+@@ -40,4 +40,4 @@ declare class UI {
+     private columnWidths;
+ }
+ declare function ui(opts: UIOptions): UI;
+-export { ui as default };
++export = ui;

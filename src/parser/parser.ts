@@ -323,13 +323,13 @@ export default class Parser {
       options: {},
       help: false
     };
+    Object.assign(this.#state, DEFAULT_STATE);
+    this.#loadCommandData();
     if (this.argv.length === 0) {
       if (this.spec.config.requireCommand)
         throw new DemandError("command", this.#state);
       return this.#result;
     }
-    Object.assign(this.#state, DEFAULT_STATE);
-    this.#loadCommandData();
     for (const arg of this.argv) {
       this.#updateState(arg);
       if (arg === "-") {

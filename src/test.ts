@@ -33,8 +33,8 @@ const app = noclis(cli =>
     .config("requireCommand", true)
 );
 
-const wait = (n: number) => (): Promise<void> =>
-  new Promise(res => setTimeout(res, n * 1000));
+const wait = (n: number) => (): Promise<string> =>
+  new Promise(res => setTimeout(() => res(`Waited ${n} seconds`), n * 1000));
 
 app.on("login", () => ({
   name: "Do the thing",
