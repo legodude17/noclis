@@ -1,7 +1,7 @@
 {
   "name": "noclis",
   "description": "NoCLIS: Node CLI System. A pluggable framework, runner, and library for CLIs that are easy and fun to make and use",
-  "version": "0.3.0-beta.1",
+  "version": "0.3.1-beta.0",
   "homepage": "https://github.com/legodude17/noclis",
   "author": "JDB (https://github.com/legodude17)",
   "repository": "legodude17/noclis",
