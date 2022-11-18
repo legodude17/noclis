@@ -6,11 +6,11 @@ import { createTask, TaskEvent, TaskInfo } from "./Task.js";
 import { format } from "../util/time.js";
 import figures, { replaceSymbols } from "figures";
 import stripAnsi from "strip-ansi";
-import chalk from "chalk";
-import type { ColorSupportLevel } from "chalk";
+import colors from "ansi-colors";
 import type { ProgressData } from "./progress.js";
 import logUpdate from "log-update";
 import render from "./render.js";
+import type { ColorSupportLevel } from "../App.js";
 
 export interface DisplayOptions {
   colorLevel: ColorSupportLevel;
@@ -31,11 +31,12 @@ export default class Display {
   #name: string;
   #ms = 0;
   #id?: ReturnType<typeof setInterval>;
+  curLog: string | undefined;
   constructor(name: string, options: DisplayOptions) {
     this.#name = name;
     this.#options = options;
     this.#client = createClient();
-    chalk.level = options.colorLevel;
+    colors.enabled = options.colorLevel > 2;
   }
 
   start() {
@@ -83,6 +84,16 @@ export default class Display {
     message: string,
     ...args: unknown[]
   ) {
+    if (!logger.LEVELS.indexOf(level)) {
+      message = args.shift() as string;
+      prefix = level;
+      level = "verbose";
+    }
+    if (this.curLog && !this.#allTasks.has(prefix)) {
+      args.unshift(message);
+      message = prefix;
+      prefix = this.curLog;
+    }
     prefix = this.#sanitize(prefix);
     const shouldPrint = logger.LEVELS.indexOf(level) <= this.level;
     const l = this.#options.logLevels[level];
@@ -105,7 +116,7 @@ export default class Display {
       } else {
         this.#output(`${level.toUpperCase()} [${prefix}] ${m}`, false);
       }
-      this.#getTask(prefix).messages.push(l + " " + log);
+      this.#getTask(prefix).message = l + " " + log;
     } else {
       this.#output(`${l} [${prefix}] ${log}`, shouldPrint);
     }
@@ -167,9 +178,9 @@ export default class Display {
       case "error": {
         const task = this.#getTask(key);
         if (typeof args[0] === "string") {
-          task.messages.push(args[0]);
+          task.message = args[0];
         } else if (args[0] instanceof Error) {
-          task.messages.push(args[0].message);
+          task.message = args[0].message;
         }
         task.endTime = process.hrtime.bigint();
         task.status = "ERRORED";
@@ -185,15 +196,15 @@ export default class Display {
         );
         if (task.parent) {
           const parent = this.#getTask(task.parent);
-          const cm = task.messages[task.messages.length - 1];
-          if (cm) parent.messages.push(cm);
+          const cm = task.message;
+          if (cm) parent.message = cm;
         }
         return;
       }
       case "output": {
         const task = this.#getTask(key);
         const m = args[0] as string;
-        task.messages.push(m);
+        task.message = m;
         this.#output(`${task.name}: ${m}`, !this.#options.term);
         return;
       }

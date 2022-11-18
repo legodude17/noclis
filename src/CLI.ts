@@ -15,11 +15,9 @@ import type {
 } from "./types.js";
 import { oneline, stringify, usage } from "./usage.js";
 import logger, { LogLevel } from "proc-log";
-import App from "./App.js";
-import supports from "supports-color";
+import App, { ColorSupportLevel } from "./App.js";
 import { extname, join } from "node:path";
 import { homedir } from "node:os";
-import type { ColorSupportLevel } from "chalk";
 import type { Task as TaskC } from "./logging/Task.js";
 import type { DemandError, NotFoundError } from "./parser/errors.js";
 import { distance } from "fastest-levenshtein";
@@ -116,20 +114,20 @@ export default class CLI<
           .name("color")
           .describe("Allow using colors")
           .type("boolean")
-          .default(supports.stderr !== false && supports.stdout !== false)
+          .default(process.stderr.getColorDepth() > 1)
       )
       .option(opt =>
         opt
           .name("colorLevel")
           .describe(
-            "Level of color to output.\n  0 = No Color\n  1 = 16 colors\n  2 = 256 colors\n  3 = 16 million colors (TrueColor)"
+            "Level of color to output.\n  2 = 2 colors (fg and bg)\n  4 = 16 colors\n  8 = 256 colors\n  16 = 16 million colors (TrueColor)"
           )
           .type(
             (str: string): ColorSupportLevel =>
               Number.parseInt(str) as ColorSupportLevel
           )
-          .choices(0, 1, 2, 3)
-          .default(supports.stdout ? supports.stdout.level : 0)
+          .choices(1, 4, 8, 24)
+          .default(process.stdout.getColorDepth() as ColorSupportLevel)
       )
       .option(opt =>
         opt
@@ -499,7 +497,7 @@ export default class CLI<
       return false;
     }
     if (result.options.color === false) {
-      result.options.colorLevel = 0;
+      result.options.colorLevel = 1;
     }
     if (result.help) {
       const path = result.commandPath;
@@ -620,8 +618,10 @@ export default class CLI<
     }
     const handleReturn = async (
       retVal: Promisable<TaskResult<Oin, Ain>>,
-      taskObj: TaskC
+      taskObj: TaskC,
+      serial: boolean
     ) => {
+      this.setCurTask();
       if (typeof retVal === "string") {
         taskObj.complete(retVal);
       } else if (isReadableStream(retVal)) {
@@ -643,12 +643,12 @@ export default class CLI<
       } else if (retVal instanceof ChildProcess) {
         if (retVal.stderr) {
           retVal.stderr
-            .pipe(split2(/(\r?\n)|(\033[0-2]?K)/g))
+            .pipe(split2())
             .on("data", (line: string) => taskObj.output(line));
         }
         if (retVal.stdout) {
           retVal.stdout
-            .pipe(split2(/(\r?\n)|(\033[0-2]?K)/g))
+            .pipe(split2())
             .on("data", (line: string) => taskObj.output(line));
         }
         retVal.on("error", (err?: Error | string) => taskObj.error(err));
@@ -658,7 +658,7 @@ export default class CLI<
         });
         await new Promise(res => retVal.on("exit", res));
       } else if (isPromiseLike(retVal)) {
-        await handleReturn(await retVal, taskObj);
+        await handleReturn(await retVal, taskObj, serial);
       } else {
         if (retVal) await runTask(retVal, taskObj);
         taskObj.complete();
@@ -666,7 +666,8 @@ export default class CLI<
     };
     const runTask = async (
       task: RunnableTask<Oin, Ain>,
-      parent?: TaskC
+      parent?: TaskC,
+      serial = true
     ): Promise<void> => {
       if (!task) {
         return;
@@ -679,7 +680,12 @@ export default class CLI<
             : parent ?? this.task("");
         taskObj.start();
         try {
-          await handleReturn(task(taskObj, result.arguments, options), taskObj);
+          if (serial) this.setCurTask(taskObj.key);
+          await handleReturn(
+            task(taskObj, result.arguments, options),
+            taskObj,
+            serial
+          );
         } catch (error) {
           taskObj.error(error as string | Error);
         }
@@ -687,17 +693,17 @@ export default class CLI<
         for (const inner of task) {
           await (Array.isArray(inner)
             ? Promise.all(
-                (inner as Task<Oin, Ain>[]).map(i => runTask(i, parent))
+                (inner as Task<Oin, Ain>[]).map(i => runTask(i, parent, false))
               )
-            : runTask(inner, parent));
+            : runTask(inner, parent, serial));
         }
       } else if (isIterable(task)) {
         for (const inner of task) {
-          await runTask(inner, parent);
+          await runTask(inner, parent, serial);
         }
       } else if (isAsyncIterable(task)) {
         for await (const inner of task) {
-          await runTask(inner, parent);
+          await runTask(inner, parent, serial);
         }
       } else if (typeof task.handler === "function") {
         const taskObj = parent
@@ -705,9 +711,11 @@ export default class CLI<
           : this.task(task.name, task.key);
         taskObj.start();
         try {
+          if (serial) this.setCurTask(taskObj.key);
           await handleReturn(
             task.handler(taskObj, result.arguments, options),
-            taskObj
+            taskObj,
+            serial
           );
         } catch (error) {
           taskObj.error(error as string | Error);

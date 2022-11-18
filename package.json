@@ -1,7 +1,7 @@
 {
   "name": "noclis",
   "description": "NoCLIS: Node CLI System. A pluggable framework, runner, and library for CLIs that are easy and fun to make and use",
-  "version": "0.3.1-beta.1",
+  "version": "0.3.1-beta.2",
   "homepage": "https://github.com/legodude17/noclis",
   "author": "JDB (https://github.com/legodude17)",
   "repository": "legodude17/noclis",
@@ -15,15 +15,21 @@
     "start": "tsc --watch",
     "pretest": "npm run build",
     "test": "node ./dist/test.js",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run lint && npm run test"
   },
   "files": [
     "dist/**/*.js",
     "dist/**/*.d.ts"
   ],
   "devDependencies": {
+    "@npmcli/ci-detect": "^3.0.1",
     "@tsconfig/node18-strictest-esm": "^1.0.1",
+    "@types/fs-minipass": "^2.1.0",
+    "@types/ini": "^1.3.31",
     "@types/is-glob": "^4.0.2",
+    "@types/js-yaml": "^4.0.5",
     "@types/node": "^18.8.5",
     "@types/proc-log": "^3.0.0",
     "@types/proggy": "^2.0.0",
@@ -45,12 +51,7 @@
     "arrowParens": "avoid"
   },
   "dependencies": {
-    "@npmcli/ci-detect": "^3.0.1",
-    "@types/fs-minipass": "^2.1.0",
-    "@types/ini": "^1.3.31",
-    "@types/js-yaml": "^4.0.5",
-    "patch-package": "^6.5.0",
-    "chalk": "^5.1.2",
+    "ansi-colors": "^4.1.3",
     "cli-spinners": "^2.7.0",
     "cliui": "^8.0.1",
     "enquirer": "^2.3.6",
@@ -65,6 +66,7 @@
     "js-yaml": "^4.1.0",
     "log-update": "^5.0.1",
     "minipass": "^3.3.5",
+    "patch-package": "^6.5.0",
     "path-exists": "^5.0.0",
     "proc-log": "^3.0.0",
     "proggy": "^2.0.0",
@@ -72,9 +74,7 @@
     "split2": "^4.1.0",
     "string-width": "^5.1.2",
     "strip-ansi": "^7.0.1",
-    "supports-color": "^9.2.3",
-    "type-fest": "^3.1.0",
-    "wrap-ansi": "^8.0.1"
+    "type-fest": "^3.1.0"
   },
   "engines": {
     "node": "~18.4.0 || ~19.0.0"

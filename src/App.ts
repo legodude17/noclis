@@ -1,5 +1,4 @@
 import type { LogLevel } from "proc-log";
-import type { ColorSupportLevel } from "chalk";
 import Display from "./logging/Display.js";
 import LogFile from "./logging/LogFile.js";
 import loadConfig, { getDefaults, loadConfigFile } from "./config/config.js";
@@ -8,6 +7,8 @@ import { Task } from "./logging/Task.js";
 import createLogger, { Logger } from "./logging/createLogger.js";
 import type { CLIConfig } from "./CLIConfig.js";
 import enquirer from "enquirer";
+
+export type ColorSupportLevel = 1 | 4 | 8 | 24;
 
 export interface AppOptions {
   colorLevel: ColorSupportLevel;
@@ -122,6 +123,16 @@ export default class App {
     const newFn = fn as T & { displayName: string };
     newFn.displayName = name;
     return newFn;
+  }
+
+  /**
+   * Set the current task.
+   * This is used to infer logging prefixes when it doesn't match a task.
+   *
+   * @internal
+   */
+  setCurTask(key?: string) {
+    this.#display!.curLog = key;
   }
 
   #errorHandler(e: Error) {

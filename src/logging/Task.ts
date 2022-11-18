@@ -19,7 +19,7 @@ export type TaskEvent =
   | "output";
 
 export interface TaskInfo {
-  messages: string[];
+  message: string;
   name: string;
   key: string;
   status: TaskStatus;
@@ -34,7 +34,7 @@ export function createTask(name: string, key: string): TaskInfo {
   return {
     name,
     key,
-    messages: [],
+    message: "",
     status: "PENDING",
     subtasks: [],
     startTime: 0n,

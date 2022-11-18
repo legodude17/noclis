@@ -1,7 +1,7 @@
 import type { DisplayOptions } from "./Display.js";
 import type { TaskInfo } from "./Task.js";
 import figures from "figures";
-import chalk from "chalk";
+import colors from "ansi-colors";
 import spinners, { Spinner } from "cli-spinners";
 import { format } from "../util/time.js";
 import type { ProgressData } from "./progress.js";
@@ -15,19 +15,19 @@ function renderSpinner(spinner: Spinner, ms: number) {
 function taskIcon(task: TaskInfo, ms: number): string {
   switch (task.status) {
     case "COMPLETE": {
-      return chalk.green(figures.tick);
+      return colors.green(figures.tick);
     }
     case "ERRORED": {
-      return chalk.red(figures.cross);
+      return colors.red(figures.cross);
     }
     case "RUNNING": {
-      return chalk.blue(renderSpinner(spinners.dots, ms));
+      return colors.blue(renderSpinner(spinners.dots, ms));
     }
     case "PENDING": {
-      return chalk.yellow(figures.pointer);
+      return colors.yellow(figures.pointer);
     }
     case "SKIPPED": {
-      return chalk.yellow(figures.arrowDown);
+      return colors.yellow(figures.arrowDown);
     }
   }
 }
@@ -81,24 +81,24 @@ function renderInner(
   ms: number,
   all: Map<string, TaskInfo>
 ): string {
-  let string = `${taskIcon(task, ms)} ${chalk.bold(task.name)}`;
-  const message = task.messages[task.messages.length - 1];
+  let string = `${taskIcon(task, ms)} ${colors.bold(task.name)}`;
+  const message = task.message;
   if (task.status === "COMPLETE" || task.status === "ERRORED") {
-    string += ` - ${message ?? task.status.toLocaleLowerCase()} (${chalk.gray(
+    string += ` - ${message ?? task.status.toLocaleLowerCase()} (${colors.gray(
       format(task.endTime - task.startTime)
     )})`;
   } else if (task.status === "RUNNING") {
     if (task.subtasks.length === 0) {
       if (task.progress.length > 1) {
         if (message)
-          string += "\n    " + chalk.grey(`${figures.arrowRight} ${message}`);
+          string += "\n    " + colors.grey(`${figures.arrowRight} ${message}`);
         string +=
           "\n" +
           task.progress
             .map(
               p =>
                 "    " +
-                chalk.grey(figures.arrowRight) +
+                colors.grey(figures.arrowRight) +
                 " " +
                 renderProgress(
                   p,
@@ -123,7 +123,7 @@ function renderInner(
           );
         if (message) string += " " + message;
       } else if (message)
-        string += "\n    " + chalk.grey(figures.arrowRight + " " + message);
+        string += "\n    " + colors.grey(figures.arrowRight + " " + message);
     } else {
       if (message) string += " - " + message;
       string +=

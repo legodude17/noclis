@@ -1,13 +1,15 @@
-import chalk from "chalk";
+import colors from "ansi-colors";
 import figures from "figures";
 import type { LogLevel } from "proc-log";
 import { readPackageUpSync } from "read-pkg-up";
 import { resolve } from "node:path";
 import url from "node:url";
 
-const pkgJson = readPackageUpSync({
-  cwd: resolve("...", url.fileURLToPath(import.meta.url))
-})?.packageJson;
+const cwd = resolve("..", url.fileURLToPath(import.meta.url));
+
+console.log(cwd);
+
+const pkgJson = readPackageUpSync({ cwd })?.packageJson;
 
 let name: string | undefined;
 const bin = pkgJson?.bin;
@@ -32,13 +34,13 @@ export const DEFAULT_CONFIG: CLIConfig = {
   progressFormat:
     "{name} {bar} {percent} ({actualValue} / {actualTotal}) [{time}]",
   logLevels: {
-    error: chalk.red(figures.cross),
-    warn: chalk.yellow(figures.warning),
-    info: chalk.blue(figures.info),
-    notice: chalk.blue(figures.star),
-    verbose: chalk.blue(figures.ellipsis),
-    http: chalk.magenta(figures.arrowUp),
-    silly: chalk.magenta(figures.arrowRight)
+    error: colors.red(figures.cross),
+    warn: colors.yellow(figures.warning),
+    info: colors.blue(figures.info),
+    notice: colors.blue(figures.star),
+    verbose: colors.blue(figures.ellipsis),
+    http: colors.magenta(figures.arrowUp),
+    silly: colors.magenta(figures.arrowRight)
   }
 };
 
