@@ -2,12 +2,14 @@ import colors from "ansi-colors";
 import figures from "figures";
 import type { LogLevel } from "proc-log";
 import { readPackageUpSync } from "read-pkg-up";
-import { resolve } from "node:path";
+import { dirname } from "node:path";
 import url from "node:url";
 
-const cwd = resolve("..", url.fileURLToPath(import.meta.url));
+let cwd = url.fileURLToPath(import.meta.url);
 
-console.log(cwd);
+while (cwd.includes("node_modules")) cwd = dirname(cwd);
+
+// console.log(cwd);
 
 const pkgJson = readPackageUpSync({ cwd })?.packageJson;
 

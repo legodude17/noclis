@@ -13,8 +13,7 @@
     "lint": "eslint src/**/*.ts",
     "build": "tsc",
     "start": "tsc --watch",
-    "pretest": "npm run build",
-    "test": "node ./dist/test.js",
+    "test": "node ./dist/test.js config ls",
     "postinstall": "patch-package",
     "prepare": "npm run build",
     "prepublishOnly": "npm run lint && npm run test"
