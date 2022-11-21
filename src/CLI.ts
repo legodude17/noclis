@@ -621,8 +621,8 @@ export default class CLI<
       taskObj: TaskC,
       serial: boolean
     ) => {
-      this.setCurTask();
       if (typeof retVal === "string") {
+        this.setCurTask();
         taskObj.complete(retVal);
       } else if (isReadableStream(retVal)) {
         retVal.on("error", (err?: Error | string) => taskObj.error(err));
@@ -633,6 +633,7 @@ export default class CLI<
         for await (const line of rl) {
           taskObj.output(line);
         }
+        this.setCurTask();
         taskObj.complete();
       } else if (Minipass.isStream(retVal)) {
         const ls = new LineStream();
@@ -640,6 +641,7 @@ export default class CLI<
         ls.on("data", line => taskObj.output(line.toString()));
         ls.on("end", () => taskObj.complete());
         await waitForEnd(ls);
+        this.setCurTask();
       } else if (retVal instanceof ChildProcess) {
         if (retVal.stderr) {
           retVal.stderr
@@ -655,13 +657,16 @@ export default class CLI<
         retVal.on("exit", (code, signal) => {
           if (code === 0) taskObj.complete();
           else taskObj.error(signal);
+          this.setCurTask();
         });
         await new Promise(res => retVal.on("exit", res));
       } else if (isPromiseLike(retVal)) {
         await handleReturn(await retVal, taskObj, serial);
+        this.setCurTask();
       } else {
-        if (retVal) await runTask(retVal, taskObj);
+        if (retVal) await runTask(retVal, taskObj, serial);
         taskObj.complete();
+        this.setCurTask();
       }
     };
     const runTask = async (

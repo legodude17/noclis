@@ -16,10 +16,12 @@ export type TaskEvent =
   | "skip"
   | "error"
   | "complete"
-  | "output";
+  | "output"
+  | "message";
 
 export interface TaskInfo {
   message: string;
+  messages: string[];
   name: string;
   key: string;
   status: TaskStatus;
@@ -35,6 +37,7 @@ export function createTask(name: string, key: string): TaskInfo {
     name,
     key,
     message: "",
+    messages: [],
     status: "PENDING",
     subtasks: [],
     startTime: 0n,
@@ -84,6 +87,10 @@ export class Task {
   output(str: string) {
     str = str.trim();
     if (str) this.#emit("output", str);
+  }
+
+  message(str: string) {
+    this.#emit("message", str);
   }
 
   progress(name: string, total?: number): Progress;

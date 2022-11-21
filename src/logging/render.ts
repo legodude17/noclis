@@ -90,8 +90,7 @@ function renderInner(
   } else if (task.status === "RUNNING") {
     if (task.subtasks.length === 0) {
       if (task.progress.length > 1) {
-        if (message)
-          string += "\n    " + colors.grey(`${figures.arrowRight} ${message}`);
+        if (message) string += " - " + message;
         string +=
           "\n" +
           task.progress
@@ -122,8 +121,17 @@ function renderInner(
               10
           );
         if (message) string += " " + message;
-      } else if (message)
-        string += "\n    " + colors.grey(figures.arrowRight + " " + message);
+      } else if (message) string += " - " + message;
+      if (task.messages.length > 0) {
+        string +=
+          "\n" +
+          indent(
+            task.messages
+              .map(m => colors.grey(figures.arrowRight) + " " + m)
+              .join("\n"),
+            4
+          );
+      }
     } else {
       if (message) string += " - " + message;
       string +=

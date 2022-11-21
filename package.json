@@ -43,7 +43,7 @@
     "eslint-plugin-tsdoc": "^0.2.17",
     "eslint-plugin-unicorn": "^44.0.2",
     "prettier": "^2.7.1",
-    "typescript": "^4.8.4"
+    "typescript": "^4.9.3"
   },
   "prettier": {
     "trailingComma": "none",
@@ -77,5 +77,8 @@
   },
   "engines": {
     "node": "~18.4.0 || ~19.0.0"
+  },
+  "engine": {
+    "node": "^18.4.0 || ^19.1.0"
   }
 }

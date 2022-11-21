@@ -208,6 +208,12 @@ export default class Display {
         this.#output(`${task.name}: ${m}`, !this.#options.term);
         return;
       }
+      case "message": {
+        const task = this.#getTask(key);
+        const m = args[0] as string;
+        task.messages.push(m);
+        this.#output(`${task.name}: ${m}`, !this.#options.term);
+      }
     }
     this.#output(`${type} ${this.#getTask(key).name}`, !this.#options.term);
   }
