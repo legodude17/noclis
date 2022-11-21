@@ -30,7 +30,7 @@ export interface Opt extends Part {
   required: boolean;
   min?: number;
   max?: number;
-  default?: unknown | undefined;
+  default?: ((arg: Record<string, unknown>) => unknown) | unknown | undefined;
   prompt?: Except<PromptOption, "name"> | undefined;
 }
 

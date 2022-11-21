@@ -23,7 +23,6 @@ import type { DemandError, NotFoundError } from "./parser/errors.js";
 import { distance } from "fastest-levenshtein";
 import { indent } from "./util/strings.js";
 import ci from "@npmcli/ci-detect";
-import typers from "./optionTypes.js";
 import Parser from "./parser/parser.js";
 import Enquirer from "enquirer";
 import { readFile, writeFile } from "node:fs/promises";
@@ -37,6 +36,7 @@ import type { Promisable } from "type-fest";
 import { isPromise } from "node:util/types";
 import type EventEmitter from "node:events";
 import split2 from "split2";
+import { defaultFor } from "./util/argOpt.js";
 
 type AddOpts = {
   version: boolean;
@@ -350,7 +350,6 @@ export default class CLI<
         Ain
       >;
       cliOptions = result.options;
-      result.options = options = await this.config(result.options, spec);
       const args = [
         ...this.parseSpec.arguments,
         ...(this.parseSpec.commands.find(
@@ -358,12 +357,17 @@ export default class CLI<
         )?.args ?? [])
       ];
       const argObj = result.arguments as Record<string, unknown>;
-      if (options.interactive) {
+      const context = { ...argObj, ...cliOptions };
+      if (result.options.interactive) {
         const prompts: PromptOption[] = [];
-        const enquirer = new Enquirer(undefined, argObj);
+        const enquirer = new Enquirer(undefined, context);
         for (const arg of args) {
           if (arg.prompt && !argObj[arg.name]) {
-            prompts.push(Object.assign({}, arg.prompt, { name: arg.name }));
+            prompts.push(
+              Object.assign({ initial: defaultFor(arg, context) }, arg.prompt, {
+                name: arg.name
+              })
+            );
           }
         }
         Object.assign(result.arguments, await enquirer.prompt(prompts));
@@ -371,12 +375,13 @@ export default class CLI<
       for (const arg of args) {
         if (!argObj[arg.name])
           // @ts-expect-error Need to add prop
-          result.arguments[arg.name] =
-            arg.default ??
-            (typeof arg.type === "string"
-              ? typers[arg.type].default
-              : arg.type(""));
+          result.arguments[arg.name] = defaultFor(arg, context);
       }
+      result.options = options = await this.config(
+        result.options,
+        spec,
+        context
+      );
       if (!result.help) this.#parser.verify(result);
     } catch (error) {
       if (error instanceof Error) {

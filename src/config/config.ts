@@ -6,10 +6,12 @@ import fs from "node:fs/promises";
 import typers from "../optionTypes.js";
 import Enquirer from "enquirer";
 import { stringify } from "../usage.js";
+import { defaultFor } from "../util/argOpt.js";
 
 export default async function loadConfig<T extends Record<string, unknown>>(
   name: string,
   spec: Option[],
+  context: Record<string, unknown>,
   base?: T,
   {
     interactive = false,
@@ -38,12 +40,13 @@ export default async function loadConfig<T extends Record<string, unknown>>(
     ...loaded.filter(l => l != undefined).reverse(),
     base
   ) as T;
+  Object.assign(context, result);
   if (interactive) {
     const prompts: PromptOption[] = [];
-    const enquirer = new Enquirer({}, result);
-    const defaults = getDefaults(spec, false);
+    const enquirer = new Enquirer({}, context);
+    const defaults = getDefaults(spec, context, false);
     for (const opt of spec) {
-      if (opt.prompt && !result[opt.name]) {
+      if (opt.prompt && opt.config && opt.cli && !result[opt.name]) {
         prompts.push(
           Object.assign({ initial: defaults[opt.name] }, opt.prompt, {
             name: opt.name
@@ -53,7 +56,7 @@ export default async function loadConfig<T extends Record<string, unknown>>(
     }
     Object.assign(result, await enquirer.prompt(prompts));
   }
-  return Object.assign(getDefaults(spec), result);
+  return Object.assign(getDefaults(spec, context), result);
 }
 
 export async function loadAllConfigFrom(
@@ -111,15 +114,15 @@ export async function loadConfigFile(
   return result;
 }
 
-export function getDefaults(spec: Option[], onlyConfig = true) {
+export function getDefaults(
+  spec: Option[],
+  context: Record<string, unknown>,
+  onlyConfig = true
+) {
   const defaults: Record<string, unknown> = {};
   for (const opt of spec) {
     if (!onlyConfig || opt.config) {
-      defaults[opt.name] =
-        opt.default ??
-        (typeof opt.type === "function"
-          ? opt.type("")
-          : typers[opt.type].default);
+      defaults[opt.name] = defaultFor(opt, context);
     }
   }
   return defaults;

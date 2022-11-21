@@ -178,7 +178,7 @@ export default class ArgumentBuilder<N extends string = never, T = boolean> {
    *
    * @public
    */
-  default(val: T) {
+  default(val: T | ((arg: Record<string, unknown>) => T)) {
     this.#item.default = val;
     return this;
   }

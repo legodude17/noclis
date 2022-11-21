@@ -77,7 +77,7 @@ export default class OptionBuilder<N extends string = never, T = boolean> {
    * Set the other names this option can be provided by.
    *
    * @remarks
-   * If this option's {@link type} is set to `"boolean"` and one of these is a single letter,
+   * If this option's {@link "type"} is set to `"boolean"` and one of these is a single letter,
    * then it will automatically be interpreted as a flag.
    *
    * @example
@@ -155,7 +155,7 @@ export default class OptionBuilder<N extends string = never, T = boolean> {
    *
    * @public
    */
-  default(val: T) {
+  default(val: T | ((arg: Record<string, unknown>) => T)) {
     this.#item.default = val;
     return this;
   }

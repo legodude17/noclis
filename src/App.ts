@@ -55,14 +55,15 @@ export default class App {
    */
   async config<O extends Record<string, unknown> & AppOptions>(
     options: O,
-    spec: Option[]
+    spec: Option[],
+    context: Record<string, unknown>
   ): Promise<O> {
     const result = options.config
       ? (Object.assign(
-          getDefaults(spec),
+          getDefaults(spec, context),
           await loadConfigFile(options.config, this.#name, spec)
         ) as O)
-      : await loadConfig<O>(this.#name, spec, options, {
+      : await loadConfig<O>(this.#name, spec, context, options, {
           interactive: options.interactive
         });
     this.#options = result;

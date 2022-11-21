@@ -2,6 +2,7 @@ import path from "node:path";
 import noclis from "./index.js";
 import type { PromptOption } from "./types.js";
 import fs from "node:fs/promises";
+import crypto from "node:crypto";
 
 const app = noclis(cli =>
   cli
@@ -25,6 +26,7 @@ const app = noclis(cli =>
             .name("password")
             .desc("Password to login with")
             .type("string")
+            .default(() => crypto.pseudoRandomBytes(15).toString())
             .prompt({
               type: "password",
               message: "What is your password?"
