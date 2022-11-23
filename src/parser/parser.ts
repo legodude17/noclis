@@ -66,7 +66,8 @@ export default class Parser {
       arguments: {},
       options: {},
       commandPath: [],
-      help: false
+      help: false,
+      extra: []
     };
   }
 
@@ -321,7 +322,8 @@ export default class Parser {
       commandPath: [],
       arguments: {},
       options: {},
-      help: false
+      help: false,
+      extra: []
     };
     Object.assign(this.#state, DEFAULT_STATE);
     this.#loadCommandData();
@@ -332,32 +334,15 @@ export default class Parser {
     }
     for (const arg of this.argv) {
       this.#updateState(arg);
-      if (arg === "-") {
-        const argument = this.#state.arguments[this.#state.argumentIndex];
-        const option =
-          this.#state.opt && this.#getItem(this.#state.opt, "option");
-        if (option) {
-          if (option.type === "stream") {
-            await this.#setOption(option, arg);
-            delete this.#state.opt;
-          } else {
-            throw this.#makeParseError("Unexpected token");
-          }
-        } else if (argument && argument.type === "stream") {
-          if (await this.#setArgument(argument, arg))
-            this.#state.argumentIndex++;
-        } else {
-          throw this.#makeParseError("Unexpected token");
-        }
-
-        this.#state.canGetCommands = false;
+      if (this.#state.sawDoubleDash) {
+        this.#result.extra.push(arg);
       } else if (this.spec.config.useDoubleDash && /^-{2,}$/.test(arg)) {
         await this.#processOpt();
         this.#state.sawDoubleDash = true;
         this.#state.canGetCommands = false;
-        /*if (!this.spec.config.stripDoubleDash) {
-          this.#processArgument();
-        }*/
+        if (!this.spec.config.stripDoubleDash) {
+          this.#result.extra.push(arg);
+        }
       } else if (!this.#state.sawDoubleDash && arg.startsWith("-")) {
         this.#state.canGetCommands = false;
         await this.#processOpt();
@@ -427,6 +412,7 @@ export default class Parser {
     this.#updateState("");
     await this.#processOpt();
     this.#result.commandPath = this.#state.commandPath;
+    if (this.#state.command) this.#result.command = this.#state.command;
     return this.#result;
   }
 

@@ -8,10 +8,8 @@ import createLogger, { Logger } from "./logging/createLogger.js";
 import type { CLIConfig } from "./CLIConfig.js";
 import enquirer from "enquirer";
 
-export type ColorSupportLevel = 1 | 4 | 8 | 24;
-
 export interface AppOptions {
-  colorLevel: ColorSupportLevel;
+  color: boolean;
   logLevel: LogLevel;
   logDir: string;
   maxLogsPerFile: number;
@@ -68,7 +66,7 @@ export default class App {
         });
     this.#options = result;
     this.#display = new Display(this.#name, {
-      colorLevel: result.colorLevel,
+      color: result.color,
       logLevel: result.logLevel,
       logFormat: this.#cliConfig.logFormat,
       progressFormat: this.#cliConfig.progressFormat,

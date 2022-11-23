@@ -13,9 +13,9 @@ import type {
   Task,
   TaskResult
 } from "./types.js";
-import { oneline, stringify, usage } from "./usage.js";
+import { oneline, stringify, usage } from "./util/usage.js";
 import logger, { LogLevel } from "proc-log";
-import App, { ColorSupportLevel } from "./App.js";
+import App from "./App.js";
 import { extname, join } from "node:path";
 import { homedir } from "node:os";
 import type { Task as TaskC } from "./logging/Task.js";
@@ -28,21 +28,24 @@ import Enquirer from "enquirer";
 import { readFile, writeFile } from "node:fs/promises";
 import { cwd } from "node:process";
 import Minipass from "minipass";
-import { isReadableStream } from "is-stream";
 import { ChildProcess } from "node:child_process";
 import { createInterface } from "node:readline";
 import LineStream from "./util/LineStream.js";
 import type { Promisable } from "type-fest";
-import { isPromise } from "node:util/types";
 import type EventEmitter from "node:events";
 import split2 from "split2";
-import { defaultFor } from "./util/argOpt.js";
+import { defaultFor, getCommmandOptions } from "./util/cli.js";
+import {
+  isPromiseLike,
+  isIterable,
+  isAsyncIterable,
+  isReadableStream
+} from "./util/types.js";
 
 type AddOpts = {
   version: boolean;
   color: boolean;
   logLevel: LogLevel;
-  colorLevel: ColorSupportLevel;
   logDir: string;
   maxLogsPerFile: number;
   maxLogFiles: number;
@@ -53,25 +56,6 @@ type AddOpts = {
 };
 
 type O<Oin extends object> = Oin & AddOpts;
-
-function isIterable<T>(obj: object): obj is Iterable<T> {
-  return typeof (obj as never)[Symbol.iterator] === "function";
-}
-
-function isAsyncIterable<T>(obj: object): obj is AsyncIterable<T> {
-  return typeof (obj as never)[Symbol.asyncIterator] === "function";
-}
-
-function getCommmandOptions(commands: Command[]): Option[] {
-  return [
-    ...commands.flatMap(com => com.options),
-    ...commands.flatMap(com => getCommmandOptions(com.children))
-  ];
-}
-
-function isPromiseLike<T>(obj: Promisable<T>): obj is PromiseLike<T> {
-  return isPromise(obj);
-}
 
 function waitForEnd(ee: EventEmitter): Promise<void> {
   return new Promise((res, rej) => {
@@ -115,19 +99,6 @@ export default class CLI<
           .describe("Allow using colors")
           .type("boolean")
           .default(process.stderr.getColorDepth() > 1)
-      )
-      .option(opt =>
-        opt
-          .name("colorLevel")
-          .describe(
-            "Level of color to output.\n  2 = 2 colors (fg and bg)\n  4 = 16 colors\n  8 = 256 colors\n  16 = 16 million colors (TrueColor)"
-          )
-          .type(
-            (str: string): ColorSupportLevel =>
-              Number.parseInt(str) as ColorSupportLevel
-          )
-          .choices(1, 4, 8, 24)
-          .default(process.stdout.getColorDepth() as ColorSupportLevel)
       )
       .option(opt =>
         opt
@@ -500,9 +471,6 @@ export default class CLI<
       }
       console.error(error);
       return false;
-    }
-    if (result.options.color === false) {
-      result.options.colorLevel = 1;
     }
     if (result.help) {
       const path = result.commandPath;

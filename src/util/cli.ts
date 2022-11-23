@@ -1,4 +1,4 @@
-import type { Argument, Option } from "../types.js";
+import type { Argument, Command, Option } from "../types.js";
 import typers from "../optionTypes.js";
 
 export function defaultFor(
@@ -10,4 +10,11 @@ export function defaultFor(
   else if (arg.default) return arg.default;
   else if (typeof arg.type === "function") return arg.type("");
   else return typers[arg.type].default;
+}
+
+export function getCommmandOptions(commands: Command[]): Option[] {
+  return [
+    ...commands.flatMap(com => com.options),
+    ...commands.flatMap(com => getCommmandOptions(com.children))
+  ];
 }

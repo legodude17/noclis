@@ -8,12 +8,10 @@ import figures, { replaceSymbols } from "figures";
 import stripAnsi from "strip-ansi";
 import colors from "ansi-colors";
 import type { ProgressData } from "./progress.js";
-import logUpdate from "log-update";
-import render from "./render.js";
-import type { ColorSupportLevel } from "../App.js";
+import Renderer from "./render.js";
 
 export interface DisplayOptions {
-  colorLevel: ColorSupportLevel;
+  color: boolean;
   logLevel: LogLevel;
   logFormat: string;
   logLevels: { [K in LogLevel]: string };
@@ -29,14 +27,14 @@ export default class Display {
   #progress: ProgressData[] = [];
   #options: DisplayOptions;
   #name: string;
-  #ms = 0;
-  #id?: ReturnType<typeof setInterval>;
   curLog: string | undefined;
+  #renderer: Renderer;
   constructor(name: string, options: DisplayOptions) {
     this.#name = name;
     this.#options = options;
     this.#client = createClient();
-    colors.enabled = options.colorLevel > 2;
+    colors.enabled = options.color;
+    this.#renderer = new Renderer(this.#tasks, this.#allTasks, this.#options);
   }
 
   start() {
@@ -44,16 +42,12 @@ export default class Display {
     process.on("log", this.#logHandler.bind(this));
     this.#client.on("progress", this.#progressHandler.bind(this));
     process.on("task", this.#taskHandler.bind(this));
-    if (this.#options.term) this.#id = setInterval(this.#render.bind(this), 10);
+    if (this.#options.term) this.#renderer.start();
   }
 
   stop() {
     this.#client.stop();
-    if (this.#options.term) {
-      clearInterval(this.#id);
-      this.#render();
-    }
-    logUpdate.done();
+    if (this.#options.term) this.#renderer.stop();
   }
 
   get level() {
@@ -71,11 +65,6 @@ export default class Display {
       `${this.#name} ${this.#sanitize(string)}`
     );
     if (toTerm) process.stderr.write(string + "\n");
-  }
-
-  #render() {
-    logUpdate(render(this.#tasks, this.#options, this.#ms, this.#allTasks));
-    this.#ms += 10;
   }
 
   #logHandler(

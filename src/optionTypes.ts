@@ -1,10 +1,7 @@
 import type { OptionTyper } from "./types.js";
-import { resolve } from "node:path";
+import { resolve, isAbsolute } from "node:path";
 import { globby } from "globby";
 import isGlob from "is-glob";
-import type { Stream } from "node:stream";
-import { pathExists } from "path-exists";
-import { createReadStream } from "node:fs";
 
 const string: OptionTyper<string> = {
   validate: () => true,
@@ -39,9 +36,9 @@ const url: OptionTyper<URL> = {
 };
 
 const path: OptionTyper<string | string[]> = {
-  async validate(str) {
+  validate(str) {
     if (isGlob(str)) return true;
-    return pathExists(resolve(str));
+    return isAbsolute(resolve(str));
   },
   coerce(str) {
     if (isGlob(str)) return globby(str);
@@ -56,11 +53,4 @@ const date: OptionTyper<Date> = {
   default: new Date()
 };
 
-const stream: OptionTyper<Stream> = {
-  validate: str => str === "-" || pathExists(resolve(str)),
-  coerce: str => (str === "-" ? process.stdin : createReadStream(resolve(str))),
-  allowArray: false,
-  default: process.stdin
-};
-
-export default { string, number, boolean, url, path, date, stream };
+export default { string, number, boolean, url, path, date };

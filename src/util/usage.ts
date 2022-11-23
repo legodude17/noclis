@@ -1,11 +1,9 @@
-import type { CLIConfig } from "./CLIConfig.js";
-import type { Argument, Command, Option, ParseSpec } from "./types.js";
-import cliui from "cliui";
+import type { CLIConfig } from "../CLIConfig.js";
+import type { Argument, Command, Option, ParseSpec } from "../types.js";
+import UI from "./cliui.js";
 import { Stream } from "node:stream";
-import typers from "./optionTypes.js";
-import { dashcase } from "./util/strings.js";
-
-const makeUI = () => cliui({ width: process.stdout.columns });
+import typers from "../optionTypes.js";
+import { dashcase, StringBuilder } from "./strings.js";
 
 export function usage(
   spec: ParseSpec,
@@ -16,42 +14,47 @@ export function usage(
     doArgs = true,
     usage = true,
     commands = true
-  } = {}
+  } = {},
+  ui = new UI()
 ) {
-  const ui = makeUI();
   if (header) {
-    ui.div(`${config.name} v${config.version}`);
-    ui.div("");
+    ui.append(`${config.name} v${config.version}`);
+    ui.append("");
   }
-  if (usage) ui.div("Usage:");
+  if (usage) ui.append("Usage:");
   if (!config.requireCommand && usage) {
-    ui.div(
-      "  " + oneline(config.name, "", spec.arguments, spec.options, config)
-    );
+    ui.indent();
+    ui.append(oneline(config.name, "", spec.arguments, spec.options, config));
+    ui.dedent();
   }
   if (spec.commands.length > 0 && commands) {
-    ui.div(
-      `  ${config.name} ${wrap("command", config.requireCommand ? "<" : "[")}`
+    ui.indent();
+    ui.append(
+      `${config.name} ${wrap("command", config.requireCommand ? "<" : "[")}`
     );
-    ui.div("");
-    ui.div("Commands:");
+    ui.dedent();
+    ui.append("");
+    ui.startSection("Commands:");
     for (const command of spec.commands) {
-      ui.div(
-        { text: command.name, padding: [0, 0, 0, 2], width: 20 },
+      ui.append(
+        command.name,
         command.description || "[No Description Provided]"
       );
     }
+    ui.endSection();
   }
-  ui.div("");
+  ui.append("");
 
   if (spec.arguments.length > 0 && doArgs) {
-    ui.div("Arguments:");
-    ui.div(args(spec.arguments));
-    ui.div("");
+    ui.startSection("Arguments:");
+    args(spec.arguments, ui);
+    ui.append("");
+    ui.endSection();
   }
-  if (spec.options.length > 0 && doOptions) {
-    ui.div("Options:");
-    ui.div(options(spec.options, config));
+  if (spec.options.some(opt => opt.cli && opt.help) && doOptions) {
+    ui.startSection("Options:");
+    options(spec.options, config, ui);
+    ui.endSection();
   }
   return ui.toString();
 }
@@ -68,15 +71,12 @@ export function oneline(
   options: Option[],
   config: CLIConfig
 ) {
+  const builder = new StringBuilder();
   args.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-  let text = "";
-  function add(str: string) {
-    text = text.trim() + " " + str.trim();
-  }
-  add(program);
-  add(command);
+  builder.append(program);
+  builder.append(command);
   let provides: string[];
-  add(
+  builder.append(
     options
       .filter(opt => opt.help)
       .map(opt =>
@@ -90,8 +90,8 @@ export function oneline(
       )
       .join(" ")
   );
-  add(args.map(arg => argName(arg)).join(" "));
-  return text;
+  builder.append(args.map(arg => argName(arg)).join(" "));
+  return builder.toString();
 }
 
 function optionProvides(opt: Option, noPrefix: string): string[] {
@@ -103,78 +103,77 @@ function optionProvides(opt: Option, noPrefix: string): string[] {
     .map(v => optName(v));
 }
 
-function command(command: Command, config: CLIConfig, programName = "") {
-  const ui = makeUI();
+function command(
+  command: Command,
+  config: CLIConfig,
+  programName = "",
+  ui = new UI()
+) {
   if (command.children.length > 1 && command.args.length === 0) {
-    ui.div(`${programName ? programName + " " : ""}${command.name} <command>`);
+    ui.append(
+      `${programName ? programName + " " : ""}${command.name} <command>`
+    );
   } else {
-    ui.div(
+    ui.append(
       oneline(programName, command.name, command.args, command.options, config)
     );
   }
-  ui.div("");
+  ui.append("");
   if (command.alias.length > 0) {
-    ui.div("Aliases:");
-    ui.div("  " + command.alias.join(", "));
-    ui.div("");
+    ui.startSection("Aliases:");
+    ui.append(command.alias.join(", "));
+    ui.append("");
+    ui.endSection();
   }
   if (command.children.length > 0) {
-    ui.div("Sub-commands:");
+    ui.startSection("Sub-commands:");
     for (const c of command.children) {
-      ui.div(
-        { text: c.name, padding: [0, 0, 0, 2], width: 20 },
-        c.description || "[No Description Provided]"
-      );
+      ui.append(c.name, c.description || "[No Description Provided]");
     }
-    ui.div("");
+    ui.append("");
+    ui.endSection();
   }
   if (command.args.length > 0) {
-    ui.div("Arguments:");
-    ui.div(args(command.args));
-    ui.div("");
+    ui.startSection("Arguments:");
+    args(command.args, ui);
+    ui.append("");
+    ui.endSection();
   }
-  if (command.options.length > 0) {
-    ui.div("Options:");
-    ui.div(options(command.options, config));
+  if (command.options.some(opt => opt.cli && opt.help)) {
+    ui.append("Options:");
+    options(command.options, config, ui);
   }
   return ui.toString();
 }
 
-function options(options: Option[], config: CLIConfig, indent = 2) {
-  const ui = makeUI();
+function options(options: Option[], config: CLIConfig, ui: UI) {
   for (const option of options) {
     if (option.cli && option.help)
-      ui.div(
-        { text: option.name, padding: [0, 0, 0, indent], width: 20 },
+      ui.append(
+        option.name,
         optionProvides(option, config.noPrefix).join(", "),
         option.description || "[No Description Provided]",
-        {
-          text: option.required
-            ? "[required]"
-            : stringify(
-                option.default ??
-                  (typeof option.type === "string"
-                    ? typers[option.type].default
-                    : option.type(""))
-              ),
-          width: 20,
-          padding: [0, 0, 0, 0]
-        }
+        option.required
+          ? "[required]"
+          : stringify(
+              option.default ??
+                (typeof option.type === "string"
+                  ? typers[option.type].default
+                  : option.type(""))
+            )
       );
   }
-  return ui.toString();
 }
 
 function optName(opt: string) {
   return `${opt.length === 1 ? "-" : "--"}${opt}`;
 }
 
-function args(args: Argument[], indent = 2) {
-  const ui = makeUI();
+function args(args: Argument[], ui: UI) {
   args.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   for (const arg of args) {
-    ui.div(
-      { text: arg.name, padding: [0, 0, 0, indent], width: 20 },
+    ui.append(
+      arg.name,
       arg.description || "[No Description Provided]",
       arg.required
         ? "[required]"
@@ -186,7 +185,6 @@ function args(args: Argument[], indent = 2) {
           )
     );
   }
-  return ui.toString();
 }
 
 function argName(arg: Argument) {

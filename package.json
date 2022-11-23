@@ -14,7 +14,6 @@
     "build": "tsc",
     "start": "tsc --watch",
     "test": "node ./dist/test.js config ls",
-    "postinstall": "patch-package",
     "prepare": "npm run build",
     "prepublishOnly": "npm run lint && npm run test"
   },
@@ -23,7 +22,6 @@
     "dist/**/*.d.ts"
   ],
   "devDependencies": {
-    "@npmcli/ci-detect": "^3.0.1",
     "@tsconfig/node18-strictest-esm": "^1.0.1",
     "@types/fs-minipass": "^2.1.0",
     "@types/ini": "^1.3.31",
@@ -33,6 +31,8 @@
     "@types/proc-log": "^3.0.0",
     "@types/proggy": "^2.0.0",
     "@types/split2": "^3.2.1",
+    "@types/wrap-ansi": "^8.0.1",
+    "type-fest": "^3.1.0",
     "@typescript-eslint/eslint-plugin": "^5.40.0",
     "@typescript-eslint/parser": "^5.40.0",
     "eslint": "^8.26.0",
@@ -50,9 +50,10 @@
     "arrowParens": "avoid"
   },
   "dependencies": {
+    "@npmcli/ci-detect": "^3.0.2",
     "ansi-colors": "^4.1.3",
+    "ansi-escapes": "^6.0.0",
     "cli-spinners": "^2.7.0",
-    "cliui": "^8.0.1",
     "enquirer": "^2.3.6",
     "fastest-levenshtein": "^1.0.16",
     "figures": "^5.0.0",
@@ -61,24 +62,17 @@
     "import-fresh": "^3.3.0",
     "ini": "^3.0.1",
     "is-glob": "^4.0.3",
-    "is-stream": "^3.0.0",
     "js-yaml": "^4.1.0",
-    "log-update": "^5.0.1",
     "minipass": "^3.3.5",
-    "patch-package": "^6.5.0",
-    "path-exists": "^5.0.0",
     "proc-log": "^3.0.0",
     "proggy": "^2.0.0",
     "read-pkg-up": "^9.1.0",
     "split2": "^4.1.0",
     "string-width": "^5.1.2",
     "strip-ansi": "^7.0.1",
-    "type-fest": "^3.1.0"
+    "wrap-ansi": "^8.0.1"
   },
   "engines": {
-    "node": "~18.4.0 || ~19.0.0"
-  },
-  "engine": {
-    "node": "^18.4.0 || ^19.1.0"
+    "node": "^18.4.0 || ^19.0.0"
   }
 }

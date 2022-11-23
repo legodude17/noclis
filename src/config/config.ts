@@ -1,12 +1,12 @@
-import type { Option, PromptOption } from "src/types.js";
+import type { Option, PromptOption } from "../types.js";
 import os from "node:os";
 import path from "node:path";
 import defaultLoaders, { Loaders } from "./loaders.js";
 import fs from "node:fs/promises";
 import typers from "../optionTypes.js";
 import Enquirer from "enquirer";
-import { stringify } from "../usage.js";
-import { defaultFor } from "../util/argOpt.js";
+import { stringify } from "../util/usage.js";
+import { defaultFor } from "../util/cli.js";
 
 export default async function loadConfig<T extends Record<string, unknown>>(
   name: string,

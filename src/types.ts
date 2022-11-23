@@ -93,6 +93,8 @@ export interface ParseResult<
   options: O;
   arguments: A;
   help: boolean;
+  extra: string[];
+  command?: Command;
 }
 
 export type Task<O, A> =
