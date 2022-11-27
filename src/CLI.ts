@@ -335,9 +335,13 @@ export default class CLI<
         for (const arg of args) {
           if (arg.prompt && !argObj[arg.name]) {
             prompts.push(
-              Object.assign({ initial: defaultFor(arg, context) }, arg.prompt, {
-                name: arg.name
-              })
+              Object.assign(
+                { initial: defaultFor(arg, context, false) },
+                arg.prompt,
+                {
+                  name: arg.name
+                }
+              )
             );
           }
         }
@@ -348,6 +352,7 @@ export default class CLI<
           // @ts-expect-error Need to add prop
           result.arguments[arg.name] = defaultFor(arg, context);
       }
+      Object.assign(context, result.arguments);
       result.options = options = await this.config(
         result.options,
         spec,
