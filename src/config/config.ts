@@ -44,9 +44,12 @@ export default async function loadConfig<T extends Record<string, unknown>>(
   if (interactive) {
     const prompts: PromptOption[] = [];
     const enquirer = new Enquirer({}, context);
-    const defaults = getDefaults(spec, context, false);
+    const defaults = getDefaults(spec, context, {
+      onlyConfig: false,
+      runFunction: false
+    });
     for (const opt of spec) {
-      if (opt.prompt && opt.config && opt.cli && !result[opt.name]) {
+      if (opt.prompt && opt.cli && !result[opt.name]) {
         prompts.push(
           Object.assign({ initial: defaults[opt.name] }, opt.prompt, {
             name: opt.name
@@ -117,12 +120,12 @@ export async function loadConfigFile(
 export function getDefaults(
   spec: Option[],
   context: Record<string, unknown>,
-  onlyConfig = true
+  { onlyConfig = true, runFunction = true } = {}
 ) {
   const defaults: Record<string, unknown> = {};
   for (const opt of spec) {
     if (!onlyConfig || opt.config) {
-      defaults[opt.name] = defaultFor(opt, context);
+      defaults[opt.name] = defaultFor(opt, context, runFunction);
     }
   }
   return defaults;

@@ -144,9 +144,27 @@ export default class App {
    *
    * @public
    */
-  prompt(
+  async prompt(
     ...args: Parameters<typeof enquirer.prompt>
   ): ReturnType<typeof enquirer.prompt> {
-    return enquirer.prompt(...args);
+    if (this.#options?.interactive) return enquirer.prompt(...args);
+    else {
+      const obj: Record<string, unknown> = {};
+      const state = {};
+      const enq = new enquirer(undefined, state);
+      for (const p of args.flat()) {
+        const promptObj = typeof p === "function" ? p.call(enq) : p;
+        const name =
+          typeof promptObj.name === "function"
+            ? promptObj.name()
+            : promptObj.name;
+        const initial =
+          typeof promptObj.initial === "function"
+            ? await (promptObj.initial as (state: object) => unknown)(state)
+            : (promptObj.initial as unknown);
+        obj[name] = initial;
+      }
+      return obj;
+    }
   }
 }
