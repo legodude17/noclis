@@ -1,7 +1,8 @@
 import type { Option, PromptOption } from "../types.js";
 import os from "node:os";
 import path from "node:path";
-import defaultLoaders, { Loaders } from "./loaders.js";
+import defaultLoaders from "./loaders.js";
+import type { Loaders } from "./loaders.js";
 import fs from "node:fs/promises";
 import typers from "../optionTypes.js";
 import Enquirer from "enquirer";

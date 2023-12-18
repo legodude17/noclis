@@ -1,8 +1,9 @@
 import { createClient, Client } from "proggy";
-import type { LogLevel } from "proc-log";
+import type { LogLevel } from "./createLogger.js";
 import logger from "proc-log";
 import util from "node:util";
-import { createTask, TaskEvent, TaskInfo } from "./Task.js";
+import { createTask } from "./Task.js";
+import type { TaskEvent, TaskInfo } from "./Task.js";
 import { format } from "../util/time.js";
 import figures, { replaceSymbols } from "figures";
 import stripAnsi from "strip-ansi";

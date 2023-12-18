@@ -1,6 +1,6 @@
 import colors from "ansi-colors";
 import figures from "figures";
-import type { LogLevel } from "proc-log";
+import type { LogLevel } from "./logging/createLogger.js";
 import { readPackageUpSync } from "read-pkg-up";
 import { dirname } from "node:path";
 import url from "node:url";

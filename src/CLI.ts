@@ -14,7 +14,8 @@ import type {
   TaskResult
 } from "./types.js";
 import { oneline, stringify, usage } from "./util/usage.js";
-import logger, { LogLevel } from "proc-log";
+import logger from "proc-log";
+import type { LogLevel } from "./logging/createLogger.js";
 import App from "./App.js";
 import { extname, join } from "node:path";
 import { homedir } from "node:os";

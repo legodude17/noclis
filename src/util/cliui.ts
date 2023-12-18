@@ -84,27 +84,35 @@ export default class UI {
             cur = width;
           }
         }
+        // I don't know why these rules are complaining so much
+        /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+        /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+        /* eslint-disable @typescript-eslint/no-unsafe-call */
+        /* eslint-disable @typescript-eslint/no-unsafe-return */
         if (overflow < widths[idx]! / 2) {
           for (const row of group) {
             row.columns[idx]!.lines = row.columns[idx]!.lines.flatMap(line =>
-              wrap.default(line, widths[idx]!, { hard: true }).split("\n")
+              wrap(line, widths[idx]!, { hard: true }).split("\n")
             );
           }
         } else {
           for (const row of group) {
             for (const [i, col] of row.columns.entries()) {
               row.columns[i]!.lines = col.lines.flatMap(line =>
-                wrap
-                  .default(
-                    line,
-                    widths[idx]! - Math.floor(overflow / widths.length),
-                    { hard: true }
-                  )
-                  .split("\n")
+                wrap(
+                  line,
+                  widths[idx]! - Math.floor(overflow / widths.length),
+                  { hard: true }
+                ).split("\n")
               );
             }
           }
         }
+
+        /* eslint-enable @typescript-eslint/no-unsafe-assignment */
+        /* eslint-enable @typescript-eslint/no-unsafe-member-access */
+        /* eslint-enable @typescript-eslint/no-unsafe-call */
+        /* eslint-enable @typescript-eslint/no-unsafe-return */
       }
       if (width < this.#width) {
         widths = widths.map(

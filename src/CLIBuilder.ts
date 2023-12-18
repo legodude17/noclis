@@ -3,7 +3,8 @@ import type { EmptyObject } from "type-fest";
 import CommandBuilder from "./CommandBuilder.js";
 import OptionBuilder from "./OptionBuilder.js";
 import ArgumentBuilder from "./ArgumentBuilder.js";
-import { CLIConfig, DEFAULT_CONFIG } from "./CLIConfig.js";
+import { DEFAULT_CONFIG } from "./CLIConfig.js";
+import type { CLIConfig } from "./CLIConfig.js";
 
 /**
  * Main class for designing the shape of the CLI

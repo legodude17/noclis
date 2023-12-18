@@ -1,10 +1,10 @@
-import type { LogLevel } from "proc-log";
+import type { LogLevel, Logger } from "./logging/createLogger.js";
 import Display from "./logging/Display.js";
 import LogFile from "./logging/LogFile.js";
 import loadConfig, { getDefaults, loadConfigFile } from "./config/config.js";
 import type { Option } from "./types.js";
 import { Task } from "./logging/Task.js";
-import createLogger, { Logger } from "./logging/createLogger.js";
+import createLogger from "./logging/createLogger.js";
 import type { CLIConfig } from "./CLIConfig.js";
 import enquirer from "enquirer";
 

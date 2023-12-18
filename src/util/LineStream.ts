@@ -1,4 +1,5 @@
-import Minipass, { Encoding } from "minipass";
+import Minipass from "minipass";
+import type { Encoding } from "minipass";
 
 export default class LineStream extends Minipass {
   #data: Buffer = Buffer.alloc(4096);

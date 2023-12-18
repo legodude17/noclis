@@ -1,5 +1,9 @@
 {
-  "extends": "@tsconfig/node18-strictest-esm/tsconfig.json",
+  "extends": [
+    "@tsconfig/recommended/tsconfig.json",
+    "@tsconfig/node21/tsconfig.json",
+    "@tsconfig/strictest/tsconfig.json"
+  ],
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"],
   "compilerOptions": {
@@ -8,6 +12,7 @@
     "outDir": "dist/",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "baseUrl": "."
+    "baseUrl": ".",
+    "verbatimModuleSyntax": true
   }
 }

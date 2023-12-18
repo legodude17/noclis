@@ -1,5 +1,7 @@
-import { ClientData, Tracker } from "proggy";
-import Minipass, { Encoding } from "minipass";
+import { Tracker } from "proggy";
+import type { ClientData } from "proggy";
+import Minipass from "minipass";
+import type { Encoding } from "minipass";
 
 export type ProgressData = ClientData & { parent?: string };
 
