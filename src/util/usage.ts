@@ -74,11 +74,13 @@ export function oneline(
   const builder = new StringBuilder();
   args.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   builder.append(program);
+  builder.newWord();
   builder.append(command);
+  builder.newWord();
   let provides: string[];
   builder.append(
     options
-      .filter(opt => opt.help)
+      .filter(opt => opt.help && opt.cli && opt.required)
       .map(opt =>
         wrap(
           wrap(
@@ -90,6 +92,7 @@ export function oneline(
       )
       .join(" ")
   );
+  builder.newWord();
   builder.append(args.map(arg => argName(arg)).join(" "));
   return builder.toString();
 }

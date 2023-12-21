@@ -1,27 +1,17 @@
-import type { Except, Promisable, ValueOf } from "type-fest";
+import type { Promisable, ValueOf } from "type-fest";
 import type { CLIConfig } from "./CLIConfig.js";
 import type typers from "./optionTypes.js";
 import type { Task as TaskC } from "./logging/Task.js";
 import type App from "./App.js";
-import type { prompt } from "enquirer";
 import type { Readable } from "node:stream";
 import type { ChildProcess } from "node:child_process";
 import type Minipass from "minipass";
+import type { PromptOptions, PromptType } from "./prompt/types.js";
 
 export interface Part {
   name: string;
   description?: string;
 }
-
-type StripFuncArray<T> = T extends Array<infer U>
-  ? U
-  : T extends () => infer U
-  ? U
-  : T;
-
-export type PromptOption = StripFuncArray<
-  StripFuncArray<Parameters<typeof prompt>[0]>
->;
 
 export interface Opt extends Part {
   type: OptionType | ((str: string) => Promisable<unknown>);
@@ -31,7 +21,7 @@ export interface Opt extends Part {
   min?: number;
   max?: number;
   default?: ((arg: Record<string, unknown>) => unknown) | unknown | undefined;
-  prompt?: Except<PromptOption, "name"> | undefined;
+  prompt?: PromptOptions | undefined;
 }
 
 export interface Argument extends Opt {
@@ -75,6 +65,7 @@ export interface OptionTyper<T> {
   coerce: (val: string) => Promisable<T>;
   allowArray?: boolean;
   default: T;
+  defaultPrompt: PromptType;
 }
 
 export interface ParseSpec {

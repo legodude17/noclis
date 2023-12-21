@@ -6,19 +6,22 @@ import isGlob from "is-glob";
 const string: OptionTyper<string> = {
   validate: () => true,
   coerce: str => str,
-  default: ""
+  default: "",
+  defaultPrompt: "input"
 };
 
 const number: OptionTyper<number> = {
   validate: str => !Number.isNaN(+str),
   coerce: str => +str,
-  default: 0
+  default: 0,
+  defaultPrompt: "numeral"
 };
 
 const boolean: OptionTyper<boolean> = {
   validate: str => str === "true" || str === "false",
   coerce: str => str === "true",
-  default: false
+  default: false,
+  defaultPrompt: "confirm"
 };
 
 const url: OptionTyper<URL> = {
@@ -32,7 +35,8 @@ const url: OptionTyper<URL> = {
     }
   },
   coerce: str => new URL(str),
-  default: new URL(import.meta.url)
+  default: new URL(import.meta.url),
+  defaultPrompt: "input"
 };
 
 const path: OptionTyper<string | string[]> = {
@@ -44,13 +48,15 @@ const path: OptionTyper<string | string[]> = {
     if (isGlob(str)) return globby(str);
     return resolve(str);
   },
-  default: process.cwd()
+  default: process.cwd(),
+  defaultPrompt: "input"
 };
 
 const date: OptionTyper<Date> = {
   validate: str => !Number.isNaN(Date.parse(str)),
   coerce: str => new Date(str),
-  default: new Date()
+  default: new Date(),
+  defaultPrompt: "input"
 };
 
 export default { string, number, boolean, url, path, date };

@@ -79,4 +79,20 @@ export class StringBuilder {
   appendSpace(str = "") {
     this.#strings.push(this.#process(str) + " ");
   }
+
+  newWord() {
+    const last = this.#strings[this.#strings.length - 1];
+    const lastLast = last?.charAt(last.length - 1);
+    if (lastLast != null && lastLast !== " " && lastLast !== "\n") {
+      this.appendSpace();
+    }
+  }
+
+  newLine() {
+    const last = this.#strings[this.#strings.length - 1];
+    const lastLast = last?.charAt(last.length - 1);
+    if (lastLast != null && lastLast !== "\n") {
+      this.appendSpace();
+    }
+  }
 }

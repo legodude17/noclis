@@ -1,4 +1,4 @@
-import type { Option, PromptOption } from "../types.js";
+import type { Option } from "../types.js";
 import os from "node:os";
 import path from "node:path";
 import defaultLoaders from "./loaders.js";
@@ -8,6 +8,8 @@ import typers from "../optionTypes.js";
 import Enquirer from "enquirer";
 import { stringify } from "../util/usage.js";
 import { defaultFor } from "../util/cli.js";
+import { promptFor } from "../prompt/prompts.js";
+import type { PromptArgs } from "../prompt/types.js";
 
 export default async function loadConfig<T extends Record<string, unknown>>(
   name: string,
@@ -43,7 +45,7 @@ export default async function loadConfig<T extends Record<string, unknown>>(
   ) as T;
   Object.assign(context, result);
   if (interactive) {
-    const prompts: PromptOption[] = [];
+    const prompts: PromptArgs[] = [];
     const enquirer = new Enquirer({}, context);
     const defaults = getDefaults(spec, context, {
       onlyConfig: false,
@@ -51,11 +53,7 @@ export default async function loadConfig<T extends Record<string, unknown>>(
     });
     for (const opt of spec) {
       if (opt.prompt && opt.cli && !result[opt.name]) {
-        prompts.push(
-          Object.assign({ initial: defaults[opt.name] }, opt.prompt, {
-            name: opt.name
-          })
-        );
+        prompts.push(promptFor(opt, context, defaults[opt.name]));
       }
     }
     Object.assign(result, await enquirer.prompt(prompts));

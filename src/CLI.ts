@@ -8,7 +8,6 @@ import type {
   Option,
   ParseResult,
   ParseSpec,
-  PromptOption,
   RunnableTask,
   Task,
   TaskResult
@@ -42,6 +41,8 @@ import {
   isAsyncIterable,
   isReadableStream
 } from "./util/types.js";
+import type { PromptArgs } from "./prompt/types.js";
+import { promptFor } from "./prompt/prompts.js";
 
 type AddOpts = {
   version: boolean;
@@ -134,7 +135,14 @@ export default class CLI<
           .default(false)
           .config(false)
       )
-      .option(opt => opt.name("config").alias("c").type("path").default(""))
+      .option(opt =>
+        opt
+          .name("config")
+          .describe("Config file to use")
+          .alias("c")
+          .type("path")
+          .default("")
+      )
       .command(command =>
         command
           .name("config")
@@ -176,7 +184,7 @@ export default class CLI<
                   .desc("Set global confiuration")
                   .type("boolean")
                   .default(false)
-                  .config(false)
+                  .where(true, false)
               )
           )
           .command(c =>
@@ -194,7 +202,7 @@ export default class CLI<
                   .desc("Set global confiuration")
                   .type("boolean")
                   .default(false)
-                  .config(false)
+                  .where(true, false)
               )
           )
           .requireSubcommand()
@@ -249,7 +257,7 @@ export default class CLI<
   }
 
   /**
-   * Set a handler for a particalr path of commands.
+   * Set a handler for a particular path of commands.
    *
    * @param path - Path of commands. Either a single command or an array. Can use wildcards (`*` and `**`)
    * @param handler - Handler function. Return anything that can be run as a task, or nothing!
@@ -331,19 +339,11 @@ export default class CLI<
       const argObj = result.arguments as Record<string, unknown>;
       const context = { ...argObj, ...cliOptions };
       if (result.options.interactive) {
-        const prompts: PromptOption[] = [];
+        const prompts: PromptArgs[] = [];
         const enquirer = new Enquirer(undefined, context);
         for (const arg of args) {
           if (arg.prompt && !argObj[arg.name]) {
-            prompts.push(
-              Object.assign(
-                { initial: defaultFor(arg, context, false) },
-                arg.prompt,
-                {
-                  name: arg.name
-                }
-              )
-            );
+            prompts.push(promptFor(arg, context));
           }
         }
         Object.assign(result.arguments, await enquirer.prompt(prompts));
@@ -567,21 +567,18 @@ export default class CLI<
         }
         case "set-all":
         case "setup": {
-          const prompts: PromptOption[] = [];
+          const prompts: PromptArgs[] = [];
           const toSet: Record<string, unknown> = {};
-          const enquirer = new Enquirer({
+          const context = {
             ...result.arguments,
             ...result.options
-          });
+          };
+          const enquirer = new Enquirer(undefined, context);
           for (const opt of spec) {
             if (opt.config) {
               toSet[opt.name] = cliOptions[opt.name];
               if (opt.prompt) {
-                prompts.push(
-                  Object.assign({ initial: toSet[opt.name] }, opt.prompt, {
-                    name: opt.name
-                  })
-                );
+                prompts.push(promptFor(opt, context, toSet[opt.name]));
               }
             }
           }

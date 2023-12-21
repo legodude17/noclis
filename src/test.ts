@@ -1,6 +1,5 @@
 import path from "node:path";
 import noclis from "./index.js";
-import type { PromptOption } from "./types.js";
 import fs from "node:fs/promises";
 import crypto from "node:crypto";
 
@@ -18,7 +17,7 @@ const app = noclis(cli =>
             .prompt({
               type: "input",
               message: "What is your username?"
-            } as PromptOption)
+            })
             .required()
         )
         .argument(arg =>
@@ -30,7 +29,7 @@ const app = noclis(cli =>
             .prompt({
               type: "password",
               message: "What is your password?"
-            } as PromptOption)
+            })
             .required()
         )
     )

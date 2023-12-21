@@ -27,7 +27,8 @@
     "no-unused-vars": "off",
     "unicorn/import-style": "off",
     "tsdoc/syntax": "warn",
-    "import/no-named-as-default-member": "off"
+    "import/no-named-as-default-member": "off",
+    "unicorn/no-null": "off"
   },
   "settings": {
     "import/resolver": {

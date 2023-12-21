@@ -1,5 +1,6 @@
 import type { Promisable } from "type-fest";
-import type { Option, OptionType, OptionTypes, PromptOption } from "./types.js";
+import type { Option, OptionType, OptionTypes } from "./types.js";
+import type { PromptOptions } from "./prompt/types.js";
 
 /**
  * Builds a `--` option
@@ -206,10 +207,9 @@ export default class OptionBuilder<N extends string = never, T = boolean> {
    * Set the prompt for this option. If it is not provided and interactive mode is set,
    * then noclis will prompt the user for the option with this prompt.
    *
-   * @remarks
-   * {@link PromptOption.name} is not allowed, as that is set to the option name automatically.
+   * @public
    */
-  prompt(prompt?: PromptOption) {
+  prompt(prompt?: PromptOptions) {
     this.#item.prompt = prompt;
     return this;
   }

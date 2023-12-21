@@ -51,9 +51,9 @@ export type {
   Argument,
   Option,
   Command,
-  PromptOption,
   OptionTypes,
   ParseSpec
 } from "./types.js";
+export type { PromptArgs, PromptOptions, PromptType } from "./prompt/types.js";
 export { default as _defaultTypeMap } from "./optionTypes.js";
 export type { CLIConfig } from "./CLIConfig.js";

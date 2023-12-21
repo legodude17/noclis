@@ -1,10 +1,6 @@
-import type { Except, Promisable } from "type-fest";
-import type {
-  Argument,
-  OptionType,
-  OptionTypes,
-  PromptOption
-} from "./types.js";
+import type { Promisable } from "type-fest";
+import type { Argument, OptionType, OptionTypes } from "./types.js";
+import type { PromptOptions } from "./prompt/types.js";
 
 /**
  * Builds a positional argument
@@ -187,12 +183,9 @@ export default class ArgumentBuilder<N extends string = never, T = boolean> {
    * Set the prompt for this argument. If it is not provided and interactive mode is set,
    * then noclis will prompt the user for the argument with this prompt.
    *
-   * @remarks
-   * {@link PromptOption.name} is not allowed, as that is set to the argument name automatically.
-   *
    * @public
    */
-  prompt(prompt?: Except<PromptOption, "name">) {
+  prompt(prompt?: PromptOptions) {
     this.#item.prompt = prompt;
     return this;
   }
