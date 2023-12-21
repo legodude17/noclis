@@ -119,11 +119,11 @@ export default class CLIBuilder<
     } else if (typeof object === "object") {
       this.#assertUnfrozen("config");
       Object.assign(this.#config, object);
-    } else if (value != undefined) {
+    } else if (value == undefined) {
+      return this.#config[object];
+    } else {
       this.#assertUnfrozen("config");
       Object.assign(this.#config, { [object]: value });
-    } else {
-      return this.#config[object];
     }
     return this;
   }

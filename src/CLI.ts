@@ -333,7 +333,7 @@ export default class CLI<
       const args = [
         ...this.parseSpec.arguments,
         ...(this.parseSpec.commands.find(
-          c => c.name === result.commandPath[result.commandPath.length - 1]
+          c => c.name === result.commandPath.at(-1)
         )?.args ?? [])
       ];
       const argObj = result.arguments as Record<string, unknown>;

@@ -141,7 +141,7 @@ export default class Renderer {
       percent: ((progress.value / progress.total) * 100).toPrecision(3) + "%",
       ...progress
     };
-    return this.#options.progressFormat.replace(
+    return this.#options.progressFormat.replaceAll(
       /{(\w+)}/g,
       (_, key: string) => {
         const val = context[key as keyof typeof context];

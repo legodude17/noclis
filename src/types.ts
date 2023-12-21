@@ -20,6 +20,7 @@ export interface Opt extends Part {
   required: boolean;
   min?: number;
   max?: number;
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   default?: ((arg: Record<string, unknown>) => unknown) | unknown | undefined;
   prompt?: PromptOptions | undefined;
 }

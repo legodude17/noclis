@@ -225,6 +225,7 @@ export function stringify(val?: unknown): string {
     try {
       return JSON.stringify(val);
     } catch {
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string
       return val.toString();
     }
   }

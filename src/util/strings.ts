@@ -81,7 +81,7 @@ export class StringBuilder {
   }
 
   newWord() {
-    const last = this.#strings[this.#strings.length - 1];
+    const last = this.#strings.at(-1);
     const lastLast = last?.charAt(last.length - 1);
     if (lastLast != null && lastLast !== " " && lastLast !== "\n") {
       this.appendSpace();
@@ -89,7 +89,7 @@ export class StringBuilder {
   }
 
   newLine() {
-    const last = this.#strings[this.#strings.length - 1];
+    const last = this.#strings.at(-1);
     const lastLast = last?.charAt(last.length - 1);
     if (lastLast != null && lastLast !== "\n") {
       this.appendSpace();

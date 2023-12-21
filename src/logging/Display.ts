@@ -91,20 +91,23 @@ export default class Display {
     const context = {
       message
     };
-    let log = this.#options.logFormat.replace(/{(\w+)}/g, (_, key: string) => {
-      if (key.includes(".")) {
-        const arr = key.split(".");
-        if (arr.length === 2 && arr[0] === "figure")
-          return figures[arr[1] as keyof typeof figures];
+    let log = this.#options.logFormat.replaceAll(
+      /{(\w+)}/g,
+      (_, key: string) => {
+        if (key.includes(".")) {
+          const arr = key.split(".");
+          if (arr.length === 2 && arr[0] === "figure")
+            return figures[arr[1] as keyof typeof figures];
+        }
+        return context[key as keyof typeof context];
       }
-      return context[key as keyof typeof context];
-    });
+    );
     if (!this.#options.term) log = this.#sanitize(log);
     if (this.#allTasks.has(prefix)) {
-      if (!this.#options.term) {
-        this.#output(`${l} [${prefix}] ${log}`, shouldPrint);
-      } else {
+      if (this.#options.term) {
         this.#output(`${level.toUpperCase()} [${prefix}] ${m}`, false);
+      } else {
+        this.#output(`${l} [${prefix}] ${log}`, shouldPrint);
       }
       this.#getTask(prefix).message = l + " " + log;
     } else {
