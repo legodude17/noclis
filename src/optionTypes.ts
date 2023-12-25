@@ -17,9 +17,20 @@ const number: OptionTyper<number> = {
   defaultPrompt: "numeral"
 };
 
+const trueStrings = new Set<string>();
+const falseStrings = new Set<string>();
+
+trueStrings.add("true");
+trueStrings.add("yes");
+trueStrings.add("y");
+
+falseStrings.add("false");
+falseStrings.add("no");
+falseStrings.add("n");
+
 const boolean: OptionTyper<boolean> = {
-  validate: str => str === "true" || str === "false",
-  coerce: str => str === "true",
+  validate: str => trueStrings.has(str) || falseStrings.has(str),
+  coerce: str => trueStrings.has(str),
   default: false,
   defaultPrompt: "confirm"
 };

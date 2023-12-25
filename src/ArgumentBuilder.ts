@@ -185,8 +185,9 @@ export default class ArgumentBuilder<N extends string = never, T = boolean> {
    *
    * @public
    */
-  prompt(prompt?: PromptOptions) {
-    this.#item.prompt = prompt;
+  prompt(prompt?: PromptOptions | string) {
+    this.#item.prompt =
+      typeof prompt === "string" ? { message: prompt } : prompt;
     return this;
   }
 }

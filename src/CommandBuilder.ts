@@ -101,7 +101,7 @@ export default class CommandBuilder<
     CA extends object
   >(
     builder: (command: CommandBuilder) => CommandBuilder<R, CC, CO, CA>
-  ): CommandBuilder<N, C | R | CC, O & CO, A & CA> {
+  ): CommandBuilder<N, C | R | CC, O & CO, A | CA> {
     this.#item.children.push(builder(new CommandBuilder({})).create());
     return this;
   }

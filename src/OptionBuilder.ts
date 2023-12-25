@@ -206,11 +206,13 @@ export default class OptionBuilder<N extends string = never, T = boolean> {
   /**
    * Set the prompt for this option. If it is not provided and interactive mode is set,
    * then noclis will prompt the user for the option with this prompt.
+   * If a string is given, it will be used as the message.
    *
    * @public
    */
-  prompt(prompt?: PromptOptions) {
-    this.#item.prompt = prompt;
+  prompt(prompt?: PromptOptions | string) {
+    this.#item.prompt =
+      typeof prompt === "string" ? { message: prompt } : prompt;
     return this;
   }
 }

@@ -31,6 +31,7 @@ export default class App {
   #display?: Display;
   #logFile?: LogFile;
   log: Logger;
+  #running: boolean = false;
 
   /**
    * Create an APP
@@ -86,6 +87,7 @@ export default class App {
   start() {
     this.#display!.start();
     this.#logFile!.start().catch(this.#errorHandler.bind(this));
+    this.#running = true;
   }
 
   /**
@@ -94,6 +96,7 @@ export default class App {
    * @internal
    */
   stop() {
+    this.#running = false;
     this.#logFile!.stop();
     this.#display!.stop();
   }
@@ -147,8 +150,12 @@ export default class App {
   async prompt(
     ...args: Parameters<typeof enquirer.prompt>
   ): ReturnType<typeof enquirer.prompt> {
-    if (this.#options?.interactive) return enquirer.prompt(...args);
-    else {
+    if (this.#options?.interactive) {
+      if (this.#running) this.#display?.renderer.stop();
+      const result = enquirer.prompt(...args);
+      if (this.#running) this.#display?.renderer.start();
+      return result;
+    } else {
       const obj: Record<string, unknown> = {};
       const state = {};
       const enq = new enquirer(undefined, state);

@@ -9,7 +9,6 @@ import type {
   ParseResult,
   ParseSpec,
   RunnableTask,
-  Task,
   TaskResult
 } from "./types.js";
 import { oneline, stringify, usage } from "./util/usage.js";
@@ -132,7 +131,7 @@ export default class CLI<
           .name("interactive")
           .alias("i")
           .type("boolean")
-          .default(false)
+          .default(builder.config("interactiveDefault"))
           .config(false)
       )
       .option(opt =>
@@ -336,20 +335,23 @@ export default class CLI<
           c => c.name === result.commandPath.at(-1)
         )?.args ?? [])
       ];
+      if (result.options.interactive == null) {
+        result.options.interactive = this.#builder.config("interactiveDefault");
+      }
       const argObj = result.arguments as Record<string, unknown>;
       const context = { ...argObj, ...cliOptions };
       if (result.options.interactive) {
         const prompts: PromptArgs[] = [];
         const enquirer = new Enquirer(undefined, context);
         for (const arg of args) {
-          if (arg.prompt && !argObj[arg.name]) {
+          if (arg.prompt && argObj[arg.name] == null) {
             prompts.push(promptFor(arg, context));
           }
         }
         Object.assign(result.arguments, await enquirer.prompt(prompts));
       }
       for (const arg of args) {
-        if (!argObj[arg.name])
+        if (argObj[arg.name] == null)
           // @ts-expect-error Need to add prop
           result.arguments[arg.name] = defaultFor(arg, context);
       }
@@ -592,6 +594,23 @@ export default class CLI<
       }
       return true;
     }
+    if (result.options.interactive) {
+      const prompts = [];
+      const context = {
+        commandPath: result.commandPath,
+        ...result.arguments,
+        ...result.options
+      };
+      for (const prompt of this.#builder.prompts) {
+        if (typeof prompt === "function") {
+          prompts.push(await prompt(context));
+        } else {
+          prompts.push(prompt);
+        }
+      }
+      const enquirer = new Enquirer(undefined, context);
+      Object.assign(result.options, await enquirer.prompt(prompts));
+    }
     const handleReturn = async (
       retVal: Promisable<TaskResult<Oin, Ain>>,
       taskObj: TaskC,
@@ -673,9 +692,7 @@ export default class CLI<
       } else if (Array.isArray(task)) {
         for (const inner of task) {
           await (Array.isArray(inner)
-            ? Promise.all(
-                (inner as Task<Oin, Ain>[]).map(i => runTask(i, parent, false))
-              )
+            ? Promise.all(inner.map(i => runTask(i, parent, false)))
             : runTask(inner, parent, serial));
         }
       } else if (isIterable(task)) {

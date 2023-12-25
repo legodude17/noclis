@@ -9,7 +9,7 @@ import figures, { replaceSymbols } from "figures";
 import stripAnsi from "strip-ansi";
 import colors from "ansi-colors";
 import type { ProgressData } from "./progress.js";
-import Renderer from "./render.js";
+import Renderer from "./Renderer.js";
 
 export interface DisplayOptions {
   color: boolean;
@@ -30,6 +30,9 @@ export default class Display {
   #name: string;
   curLog: string | undefined;
   #renderer: Renderer;
+  get renderer() {
+    return this.#renderer;
+  }
   constructor(name: string, options: DisplayOptions) {
     this.#name = name;
     this.#options = options;

@@ -1,10 +1,11 @@
 import type { Argument, Command, Option, ParseSpec } from "./types.js";
-import type { EmptyObject } from "type-fest";
+import type { EmptyObject, Promisable } from "type-fest";
 import CommandBuilder from "./CommandBuilder.js";
 import OptionBuilder from "./OptionBuilder.js";
 import ArgumentBuilder from "./ArgumentBuilder.js";
 import { DEFAULT_CONFIG } from "./CLIConfig.js";
 import type { CLIConfig } from "./CLIConfig.js";
+import type { PromptArgs } from "./index.js";
 
 /**
  * Main class for designing the shape of the CLI
@@ -25,6 +26,8 @@ export default class CLIBuilder<
 
   #frozen = false;
 
+  #prompts: (PromptArgs | ((context: O & A) => Promisable<PromptArgs>))[] = [];
+
   /* @internal */
   get parseSpec(): ParseSpec {
     this.#frozen = true;
@@ -34,6 +37,12 @@ export default class CLIBuilder<
       options: this.#options,
       arguments: this.#arguments
     };
+  }
+
+  /* @internal */
+  get prompts() {
+    this.#frozen = true;
+    return this.#prompts;
   }
 
   #assertUnfrozen(op: keyof this) {
@@ -125,6 +134,15 @@ export default class CLIBuilder<
       this.#assertUnfrozen("config");
       Object.assign(this.#config, { [object]: value });
     }
+    return this;
+  }
+
+  /**
+   * Add an extra prompt
+   */
+  prompt(prompt: PromptArgs | ((context: O & A) => Promisable<PromptArgs>)) {
+    this.#assertUnfrozen("prompt");
+    this.#prompts.push(prompt);
     return this;
   }
 }

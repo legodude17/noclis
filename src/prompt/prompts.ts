@@ -20,18 +20,28 @@ export function promptFor(
   } else {
     typer = optionTypes[arg.type];
   }
-  // @ts-expect-error This is a mess
-  return Object.assign(
+
+  const promptObj = Object.assign(
     {
-      validate: typer.validate,
-      result: typer.coerce,
-      enabled: "True",
-      disabled: "False"
+      initial,
+      type: typer.defaultPrompt
     },
     arg.prompt,
     {
-      name: arg.name,
-      initial
+      name: arg.name
     }
-  );
+  ) as PromptArgs;
+
+  if (promptObj.type === "input") {
+    /* eslint-disable @typescript-eslint/unbound-method */
+    promptObj.validate ??= typer.validate as (
+      str: string
+    ) => boolean | Promise<boolean>;
+    promptObj.result ??= typer.coerce as (
+      str: string
+    ) => string | Promise<string>;
+    /* eslint-enable @typescript-eslint/unbound-method */
+  }
+
+  return promptObj;
 }

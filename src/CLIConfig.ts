@@ -32,6 +32,7 @@ export const DEFAULT_CONFIG: CLIConfig = {
   noPrefix: "no-",
   name: name ?? pkgJson?.name ?? "",
   version: pkgJson?.version ?? "",
+  interactiveDefault: true,
   logFormat: "{message}",
   progressFormat:
     "{name} {bar} {percent} ({actualValue} / {actualTotal}) [{time}]",
@@ -88,6 +89,10 @@ export interface CLIConfig {
    * if it can't, `""`.
    */
   version: string;
+  /**
+   * Interactive by default. Default: true
+   */
+  interactiveDefault: boolean;
   /**
    * Format for log messages. Default: `"{message}"`
    */

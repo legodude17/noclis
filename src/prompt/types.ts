@@ -1,5 +1,5 @@
 import { prompt } from "enquirer";
-import type { Promisable } from "type-fest";
+import type { Except, Promisable, SetOptional } from "type-fest";
 
 type StripArr<T> = T extends Array<infer U> ? U : never;
 type StripFunc<T> = T extends () => Promisable<infer U> ? U : never;
@@ -76,14 +76,16 @@ interface SortPromptOptions extends BasePromptOptions {
   numbered?: boolean;
 }
 
-export type PromptOptions = Exclude<
+export type PromptOptions = SetOptional<
+  Except<PromptArgs, "name", { requireExactProps: true }>,
+  "type"
+>;
+
+export type PromptType = (
   | ArrayPromptOptions
   | BooleanPromptOptions
   | StringPromptOptions
   | NumberPromptOptions
   | SnippetPromptOptions
-  | SortPromptOptions,
-  "type"
->;
-
-export type PromptType = PromptOptions["type"];
+  | SortPromptOptions
+)["type"];
